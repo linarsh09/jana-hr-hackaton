@@ -20,7 +20,8 @@
                                 <th class="ps-4">Ф.И.О.</th>
                                 <th>Должность</th>
                                 <th>Подразделение</th>
-                                <th class="pe-4">Email</th>
+                                <th>Email</th>
+                                <th class="pe-4 text-end">Действия</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -29,11 +30,12 @@
                                 <td class="ps-4 fw-semibold">{{ employee.full_name }}</td>
                                 <td>{{ employee.position }}</td>
                                 <td>{{ employee.department.name if employee.department else '—' }}</td>
-                                <td class="pe-4">{{ employee.email }}</td>
+                                <td>{{ employee.email }}</td>
+                                <td class="pe-4 text-end"><a class="btn btn-sm btn-outline-primary" href="{{ url_for('admin.edit_employee', employee_id=employee.user.id) }}">Изменить</a></td>
                             </tr>
                             {% else %}
                             <tr>
-                                <td colspan="4" class="text-center text-secondary py-5">
+                                <td colspan="5" class="text-center text-secondary py-5">
                                     Подчинённые пока не назначены.
                                 </td>
                             </tr>

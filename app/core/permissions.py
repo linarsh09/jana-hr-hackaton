@@ -41,7 +41,12 @@ def login_required(view):
     return wrapped
 
 
-def role_required(*allowed_roles: UserRole):
+def _role_value(role):
+    """Return the stored string value for an enum role or plain role string."""
+    return role.value if isinstance(role, UserRole) else str(role)
+
+
+def role_required(*allowed_roles: UserRole | str):
     """Требует авторизации и одну из указанных ролей."""
     def decorator(view):
         @wraps(view)
@@ -51,7 +56,8 @@ def role_required(*allowed_roles: UserRole):
             if user is None:
                 return redirect(url_for("users.login"))
 
-            if user.role not in allowed_roles:
+            allowed_values = {_role_value(role) for role in allowed_roles}
+            if _role_value(user.role) not in allowed_values:
                 abort(403)
 
             return view(*args, **kwargs)
@@ -77,12 +83,13 @@ def visible_employee_query():
     query = Employee.query
     if user is None:
         return query.filter(false())
-    if user.role in (UserRole.HR, UserRole.ADMIN):
+    role = _role_value(user.role)
+    if role in (UserRole.HR.value, UserRole.ADMIN.value):
         return query
     own = current_employee()
     if own is None:
         return query.filter(false())
-    if user.role == UserRole.MANAGER:
+    if role == UserRole.MANAGER.value:
         return query.filter((Employee.id == own.id) | (Employee.manager_id == own.id))
     return query.filter(Employee.id == own.id)
 
@@ -105,9 +112,10 @@ def can_manage_employee(employee: Employee | int) -> bool:
     user = getattr(g, "current_user", None)
     if user is None:
         return False
-    if user.role in (UserRole.HR, UserRole.ADMIN):
+    role = _role_value(user.role)
+    if role in (UserRole.HR.value, UserRole.ADMIN.value):
         return True
-    if user.role != UserRole.MANAGER:
+    if role != UserRole.MANAGER.value:
         return False
     target = employee if isinstance(employee, Employee) else db.session.get(Employee, employee)
     own = current_employee()

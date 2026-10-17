@@ -1,6 +1,6 @@
 from datetime import date
 from app.api.vacations.repository import VacationRepository
-from app.api.employees.repository import EmployeeRepository
+from app.api.employee.repository import EmployeeRepository
 from app.models import RequestType, VacationRequest, VacationStatus
 
 

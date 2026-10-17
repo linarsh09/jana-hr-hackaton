@@ -405,7 +405,7 @@ class User(db.Model):
     role = db.Column(
         db.Enum(UserRole, name="user_role"),
         nullable=False,
-        default=UserRole.EMPLOYEE,
+        default="employee",
     )
 
     employee = db.relationship("Employee", back_populates="user", uselist=False, foreign_keys="Employee.user_id")

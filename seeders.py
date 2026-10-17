@@ -140,13 +140,13 @@ def seed():
             hr_user = User(
                 username="hr",
                 password_hash=generate_password_hash("hr"),
-                role=UserRole.HR,
+                role="hr",
                 is_active=True,
             )
 
             db.session.add(hr_user)
 
-        hr_user.role = UserRole.HR
+        hr_user.role = "hr"
         hr_user.is_active = True
         print("HR user ready.")
 

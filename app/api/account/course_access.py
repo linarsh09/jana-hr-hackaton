@@ -9,7 +9,7 @@ from app.models import Employee, User, UserRole
 def can_take_courses(user: User | None) -> bool:
     # INTEGRATION POINT (academy): use this before allowing a user to start a course.
     """Only ordinary employees take courses; HR and managers assign them."""
-    return user is not None and user.is_active and user.role == UserRole.EMPLOYEE
+    return user is not None and user.is_active and user.role == "employee"
 
 
 def can_assign_courses(user: User | None, employee: Employee) -> bool:
@@ -17,10 +17,10 @@ def can_assign_courses(user: User | None, employee: Employee) -> bool:
     """HR can assign to anyone; managers can assign to their direct reports."""
     if user is None or not user.is_active:
         return False
-    if user.role == UserRole.HR:
+    if user.role == "hr":
         return True
     return (
-        user.role == UserRole.MANAGER
+        user.role == "manager"
         and user.employee is not None
         and employee.manager_id == user.employee.id
     )

@@ -68,7 +68,7 @@ def profile():
 
 @account_bp.route("/requests", methods=["GET"])
 @login_required
-@role_required(UserRole.EMPLOYEE, UserRole.MANAGER, UserRole.HR)
+@role_required("employee", "manager", "hr")
 def requests_page():
     # INTEGRATION POINT (requests): connect the request service here and pass
     # the employee's own requests, manager's direct-report requests, or all
@@ -90,7 +90,7 @@ def courses_page():
 
 @account_bp.route("/team", methods=["GET"])
 @login_required
-@role_required(UserRole.MANAGER)
+@role_required("manager")
 def team_page():
     manager = g.current_user.employee
     # Hide orphaned/deactivated profiles left after account removal/deactivation.
@@ -104,7 +104,7 @@ def team_page():
 
 @account_bp.route("/password", methods=["POST"])
 @login_required
-@role_required(UserRole.MANAGER, UserRole.HR)
+@role_required("manager", "hr")
 def change_password():
     current_password = request.form.get("current_password", "")
     new_password = request.form.get("new_password", "")
