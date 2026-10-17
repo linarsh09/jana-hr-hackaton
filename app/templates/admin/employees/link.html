@@ -1,0 +1,50 @@
+{% extends "admin_layout.html" %}
+{% set active_page = 'employees' %}
+{% block title %}Связать учётку{% endblock %}
+{% block page_title %}Связать учётку и карточку сотрудника{% endblock %}
+
+{% block content %}
+<div class="mb-4">
+    <a href="{{ url_for('admin.employees') }}" class="text-decoration-none text-secondary">← К сотрудникам</a>
+    <h1 class="h3 mt-3 mb-1">Связать учётку с сотрудником</h1>
+    <p class="text-secondary">После привязки сотрудник увидит свой профиль и сможет подавать заявки.</p>
+    <a class="btn btn-sm btn-outline-primary" href="{{ url_for('admin.create_employee_card') }}">Сначала создать карточку</a>
+</div>
+<div class="card border-0 shadow-sm">
+    <div class="card-body p-4">
+        <form method="post" action="{{ url_for('admin.link_employee_account') }}" class="row g-3">
+            <div class="col-12 col-lg-4">
+                <label class="form-label" for="user_id">Учётная запись</label>
+                <select class="form-select" id="user_id" name="user_id" required>
+                    <option value="">Выберите пользователя</option>
+                    {% for user in users %}
+                    <option value="{{ user.id }}">{{ user.username }} · {{ user.role.value }}{% if user.employee %} (уже связана){% endif %}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-12 col-lg-4">
+                <label class="form-label" for="employee_id">Карточка сотрудника</label>
+                <select class="form-select" id="employee_id" name="employee_id" required>
+                    <option value="">Выберите карточку</option>
+                    {% for employee in employees %}
+                    <option value="{{ employee.id }}">{{ employee.full_name }} · {{ employee.email }}{% if employee.user %} (уже связана){% endif %}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-12 col-lg-4">
+                <label class="form-label" for="manager_id">Руководитель</label>
+                <select class="form-select" id="manager_id" name="manager_id">
+                    <option value="">Не назначен</option>
+                    {% for manager in managers %}
+                    <option value="{{ manager.id }}">{{ manager.full_name }}</option>
+                    {% else %}
+                    <option value="" disabled>Пока нет связанных руководителей</option>
+                    {% endfor %}
+                </select>
+                <div class="form-text">Чтобы руководитель появился здесь, сначала выберите его учётную запись и свяжите её с его карточкой сотрудника. При первой привязке оставьте руководителя неназначенным.</div>
+            </div>
+            <div class="col-12"><button class="btn btn-primary" type="submit">Сохранить связь</button></div>
+        </form>
+    </div>
+</div>
+{% endblock %}

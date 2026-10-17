@@ -1,0 +1,11 @@
+{% extends 'academy/catalog.html' %}
+{% block academy_content %}
+<a class="back" href="{{ url_for('academy_pages.catalog',course_id=course.id) }}">← Вернуться к курсу</a>
+<div class="eyebrow">Проверка знаний</div><h1>Итоговый тест</h1><p class="muted">{{ course.title }} · {{ quiz_data.questions|length }} вопросов · Проходной результат 80%</p>
+
+{% if quiz_summary.attempts %}<div class="card reading" style="margin-bottom:24px"><h2>{{ '✓ Тест сдан' if quiz_summary.passed else 'Можно попробовать ещё раз' }}</h2><p>Лучший результат: <strong>{{ quiz_summary.best_score }}%</strong> · Последний: {{ quiz_summary.last_score }}% · Попыток: {{ quiz_summary.attempts }}</p><p class="caption">Последняя попытка: {{ quiz_summary.last_attempt_at }} (UTC). Успешная сдача сохраняется при пересдаче.</p></div>{% endif %}
+{% if quiz_error %}<div class="notice" role="alert">{{ quiz_error }}</div>{% endif %}
+<form method="post"><input type="hidden" name="csrf_token" value="{{ session.academy_csrf }}"><input type="hidden" name="submission_id" value="{{ quiz_data.submission_id }}">
+{% for question in quiz_data.questions %}<fieldset class="card reading" style="margin:0 0 20px;min-width:0"><legend style="float:left;width:100%;font-weight:650;font-size:19px;margin-bottom:18px">{{ loop.index }}. {{ question.text }}</legend><div style="clear:both">{% for option in question.options %}<label style="display:block;padding:12px 16px;border:1px solid #d4dfc7;border-radius:10px;margin-top:10px;cursor:pointer"><input required type="radio" name="question_{{ question.id }}" value="{{ loop.index0 }}" style="accent-color:#246651;margin-right:10px">{{ option }}</label>{% endfor %}</div></fieldset>{% endfor %}
+<button class="button">Отправить ответы →</button><p class="caption">Один ответ на каждый вопрос. Баллы рассчитываются после отправки.</p></form>
+{% endblock %}

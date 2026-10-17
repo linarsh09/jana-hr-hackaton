@@ -1,0 +1,48 @@
+{% extends "account_layout.html" %}
+{% set active_page = 'team' %}
+{% block title %}Мои сотрудники{% endblock %}
+{% block page_title %}Личный кабинет · Мои сотрудники{% endblock %}
+
+{% block content %}
+<div class="row g-4">
+    <div class="col-12">
+        <div class="jana-eyebrow mb-2">Сильнее вместе</div><h1 class="h3 mb-1">Моя команда</h1>
+        <p class="text-secondary">Сотрудники, закреплённые за вами как за руководителем.</p>
+    </div>
+
+    <div class="col-12">
+        <section class="card border-0 shadow-sm">
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th class="ps-4">Ф.И.О.</th>
+                                <th>Должность</th>
+                                <th>Подразделение</th>
+                                <th class="pe-4">Email</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for employee in employees %}
+                            <tr>
+                                <td class="ps-4 fw-semibold">{{ employee.full_name }}</td>
+                                <td>{{ employee.position }}</td>
+                                <td>{{ employee.department.name if employee.department else '—' }}</td>
+                                <td class="pe-4">{{ employee.email }}</td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="4" class="text-center text-secondary py-5">
+                                    Подчинённые пока не назначены.
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,861 @@
+:root {
+    --jana-ink: #1c3032;
+    --jana-muted: #6d7d7a;
+    --jana-green: #246651;
+    --jana-line: #e1e8e2;
+    --jana-paper: #f5f7f2;
+    --bs-primary: #246651;
+    --bs-primary-rgb: 36,102,81;
+    --bs-body-color: #1c3032;
+    --bs-secondary-color: #6d7d7a;
+    --bs-border-color: #e1e8e2;
+    --bs-link-color: #246651;
+    --bs-link-hover-color: #174c3b
+}
+
+* {
+    box-sizing: border-box
+}
+
+body {
+    margin: 0;
+    background: var(--jana-paper);
+    font-family: 'Segoe UI',sans-serif;
+    font-size: 15px;
+    line-height: 1.6;
+    color: var(--jana-ink)
+}
+
+a {
+    color: var(--jana-green);
+    text-decoration: none
+}
+
+a:hover {
+    color: #174c3b
+}
+
+a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible {
+    outline: 3px solid #c6a45b;
+    outline-offset: 4px
+}
+
+button,input,select,textarea {
+    font: inherit
+}
+
+.jana-skip {
+    position: fixed;
+    left: 20px;
+    top: -90px;
+    background: white;
+    z-index: 100;
+    padding: 12px;
+    border-radius: 8px
+}
+
+.jana-skip:focus {
+    top: 10px
+}
+
+.jana-shell {
+    display: grid;
+    grid-template-columns: 244px minmax(0,1fr);
+    min-height: 100vh
+}
+
+.jana-sidebar {
+    display: flex;
+    flex-direction: column;
+    padding: 34px 22px 24px;
+    background: #173e35;
+    color: #deebe3;
+    min-height: 100vh
+}
+
+.jana-brand {
+    font-size: 29px;
+    letter-spacing: -1.2px;
+    font-weight: 750;
+    line-height: 1.2;
+    color: #fff!important;
+    text-decoration: none
+}
+
+.jana-brand span {
+    color: #bfd58a
+}
+
+.jana-tagline {
+    font-size: 10px;
+    letter-spacing: 2.5px;
+    color: #a8c1b4;
+    margin: 8px 0 42px
+}
+
+.jana-nav-label {
+    font-size: 10px;
+    letter-spacing: 1.8px;
+    color: #94b2a3;
+    margin: 0 14px 14px
+}
+
+.jana-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 6px
+}
+
+.jana-nav-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 13px 14px;
+    border-radius: 10px;
+    color: #bdd0c7;
+    font-size: 14px
+}
+
+.jana-nav-item:hover,.jana-nav-item.is-active {
+    background: #31594b;
+    color: white
+}
+
+.jana-nav-icon {
+    font-size: 19px;
+    width: 21px;
+    line-height: 1;
+    text-align: center;
+    opacity: .85
+}
+
+.jana-nav-dot {
+    width: 6px;
+    height: 6px;
+    background: #c5d990;
+    border-radius: 50%;
+    margin-left: auto
+}
+
+.jana-side-note {
+    border: 1px solid #456254;
+    background: #22483b;
+    padding: 19px 17px;
+    border-radius: 14px;
+    margin: 44px 0 32px
+}
+
+.jana-side-note strong {
+    display: block;
+    font-size: 14px;
+    margin-top: 8px
+}
+
+.jana-side-note p {
+    font-size: 12px;
+    color: #b6c9bc;
+    margin: 8px 0 13px
+}
+
+.jana-side-note a {
+    color: #d2e5a7;
+    font-size: 12px
+}
+
+.jana-note-symbol {
+    font-size: 30px;
+    color: #c5d990;
+    line-height: 1
+}
+
+.jana-account {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: auto;
+    border-top: 1px solid #416052;
+    padding-top: 22px
+}
+
+.jana-account strong {
+    font-size: 12px;
+    overflow-wrap: anywhere
+}
+
+.jana-account small {
+    display: block;
+    color: #abc2b6;
+    font-size: 10px
+}
+
+.jana-account form {
+    margin-left: auto
+}
+
+.jana-avatar {
+    width: 36px;
+    height: 36px;
+    flex-shrink: 0;
+    display: inline-grid;
+    place-items: center;
+    background: #e7eddb;
+    color: #45623c;
+    border-radius: 50%;
+    font-size: 13px;
+    font-weight: 700
+}
+
+.jana-logout {
+    background: transparent;
+    color: #d8e5dc;
+    border: 1px solid #658477;
+    border-radius: 8px;
+    padding: 4px 9px
+}
+
+.jana-main {
+    min-width: 0
+}
+
+.jana-topbar {
+    min-height: 86px;
+    background: #fff;
+    border-bottom: 1px solid var(--jana-line);
+    padding: 18px 5%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px
+}
+
+.jana-breadcrumb {
+    font-size: 11px;
+    color: var(--jana-muted);
+    margin-bottom: 4px
+}
+
+.jana-breadcrumb span {
+    margin: 0 9px;
+    color: #bdc6bb
+}
+
+.jana-topbar strong {
+    font-size: 14px;
+    font-weight: 600
+}
+
+.jana-top-profile {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    color: var(--jana-ink)
+}
+
+.jana-top-name {
+    font-size: 12px
+}
+
+.jana-content {
+    max-width: 1360px;
+    margin: auto;
+    padding: 36px 5% 22px
+}
+
+.jana-footer {
+    display: flex;
+    justify-content: space-between;
+    gap: 14px;
+    flex-wrap: wrap;
+    font-size: 11px;
+    color: #819084;
+    border-top: 1px solid var(--jana-line);
+    padding: 23px 0 4px;
+    margin-top: 45px
+}
+
+.jana-eyebrow {
+    font-size: 10px;
+    letter-spacing: 2px;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: #67836d
+}
+
+.jana-heading {
+    margin: 12px 0 10px;
+    font-size: clamp(27px,3vw,38px);
+    font-weight: 650;
+    letter-spacing: -1.1px;
+    line-height: 1.2
+}
+
+h1.h3 {
+    font-size: 32px;
+    letter-spacing: -1px;
+    font-weight: 650
+}
+
+h2.h5 {
+    font-size: 19px;
+    font-weight: 650;
+    letter-spacing: -.3px
+}
+
+.jana-intro {
+    margin-bottom: 28px
+}
+
+.jana-hero {
+    background: #e7eddb;
+    border: 1px solid #dbe3cb;
+    border-radius: 20px;
+    padding: 30px 34px;
+    margin-bottom: 24px;
+    position: relative;
+    overflow: hidden
+}
+
+.jana-hero p {
+    max-width: 650px;
+    color: #647960
+}
+
+.jana-profile-hero {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 24px
+}
+
+.jana-person-symbol {
+    height: 110px;
+    width: 110px;
+    flex-shrink: 0;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    background: #d7e2c3;
+    border: 1px solid #b7c99f;
+    color: #4c6a3e;
+    font-size: 42px;
+    font-family: Georgia,serif;
+    transform: rotate(-8deg)
+}
+
+.jana-stat-grid {
+    display: grid;
+    grid-template-columns: repeat(3,minmax(0,1fr));
+    gap: 18px;
+    margin-bottom: 28px
+}
+
+.jana-stat {
+    background: #fff;
+    border: 1px solid var(--jana-line);
+    padding: 20px 22px;
+    border-radius: 14px
+}
+
+.jana-stat .stat-caption {
+    display: block;
+    font-size: 11px;
+    color: var(--jana-muted);
+    margin-bottom: 8px
+}
+
+.jana-stat strong {
+    display: block;
+    font-size: 22px;
+    font-weight: 650;
+    line-height: 1.4
+}
+
+.jana-stat small {
+    font-size: 11px;
+    color: var(--jana-muted)
+}
+
+.jana-shortcut {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 0;
+    color: var(--jana-ink);
+    border-bottom: 1px solid var(--jana-line)
+}
+
+.jana-shortcut:last-child {
+    border: 0
+}
+
+.jana-shortcut:hover {
+    color: var(--jana-green)
+}
+
+.jana-shortcut small {
+    display: block;
+    color: var(--jana-muted);
+    font-size: 12px;
+    margin-top: 3px
+}
+
+.jana-shortcut .arrow {
+    color: #668944;
+    font-size: 22px
+}
+
+.jana-empty {
+    padding: 28px 20px;
+    text-align: center;
+    color: var(--jana-muted);
+    background: #f7f9f3;
+    border-radius: 12px
+}
+
+.jana-empty-symbol {
+    display: block;
+    font-size: 28px;
+    color: #91a37e;
+    margin-bottom: 10px
+}
+
+.jana-details dt,.jana-details dd {
+    padding: 11px 0;
+    margin: 0;
+    border-bottom: 1px solid #edf0e8
+}
+
+.jana-details dt {
+    font-size: 12px;
+    color: var(--jana-muted);
+    font-weight: 400
+}
+
+.jana-details dd {
+    font-size: 13px;
+    overflow-wrap: anywhere
+}
+
+.jana-note {
+    padding: 14px 18px;
+    background: #eef3e6;
+    border-radius: 10px;
+    font-size: 13px;
+    color: #5b744e
+}
+
+.card {
+    border: 1px solid var(--jana-line)!important;
+    border-radius: 16px;
+    box-shadow: none!important;
+    overflow: hidden;
+    background: #fff
+}
+
+.card-body {
+    min-width: 0
+}
+
+.card-header,.card-footer {
+    background: #fff!important
+}
+
+.card-header {
+    border-bottom: 1px solid var(--jana-line)!important
+}
+
+.card-footer {
+    font-size: 12px
+}
+
+.btn {
+    border-radius: 9px;
+    padding: 10px 18px;
+    font-size: 13px;
+    font-weight: 600
+}
+
+.btn-sm {
+    padding: 6px 11px;
+    font-size: 12px
+}
+
+.btn-primary {
+    --bs-btn-bg: #246651;
+    --bs-btn-border-color: #246651;
+    --bs-btn-hover-bg: #174c3b;
+    --bs-btn-hover-border-color: #174c3b;
+    --bs-btn-active-bg: #174c3b;
+    --bs-btn-active-border-color: #174c3b
+}
+
+.btn-outline-primary {
+    --bs-btn-color: #246651;
+    --bs-btn-border-color: #b6cbb4;
+    --bs-btn-hover-bg: #edf3e5;
+    --bs-btn-hover-color: #246651;
+    --bs-btn-hover-border-color: #8ea57c;
+    --bs-btn-active-bg: #e0ebd4;
+    --bs-btn-active-color: #246651
+}
+
+.btn-outline-secondary {
+    --bs-btn-color: #647363;
+    --bs-btn-border-color: #d2ddce;
+    --bs-btn-hover-bg: #edf2e7;
+    --bs-btn-hover-color: #246651
+}
+
+.btn:disabled {
+    opacity: .65
+}
+
+.form-control,.form-select {
+    border-color: #d8e1d2;
+    border-radius: 9px;
+    padding: 11px 13px;
+    font-size: 14px;
+    background-color: #fcfdf9
+}
+
+.form-control:focus,.form-select:focus {
+    border-color: #88a66f;
+    box-shadow: 0 0 0 3px #66894420
+}
+
+.form-check-input:checked {
+    background-color: #246651;
+    border-color: #246651
+}
+
+.form-label {
+    font-size: 12px;
+    font-weight: 600;
+    margin-bottom: 7px
+}
+
+.form-text {
+    font-size: 11px;
+    color: var(--jana-muted);
+    margin-top: 7px
+}
+
+.text-secondary {
+    color: var(--jana-muted)!important
+}
+
+.table {
+    --bs-table-color: var(--jana-ink);
+    --bs-table-border-color: #edf0e8;
+    --bs-table-hover-bg: #f5f8ef;
+    font-size: 13px
+}
+
+.table td {
+    padding-top: 18px;
+    padding-bottom: 18px
+}
+
+.table th {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: .2px;
+    padding-top: 14px;
+    padding-bottom: 14px;
+    color: #65775d;
+    white-space: nowrap
+}
+
+.table-light {
+    --bs-table-bg: #edf2e5;
+    --bs-table-color: #536b48
+}
+
+.badge {
+    border-radius: 30px;
+    font-weight: 500;
+    padding: 7px 11px;
+    font-size: 11px
+}
+
+.text-bg-secondary {
+    background: #eef2e7!important;
+    color: #5f7453!important
+}
+
+.text-bg-primary {
+    background: #dfeadc!important;
+    color: #35612c!important
+}
+
+.alert {
+    border-radius: 12px;
+    font-size: 13px;
+    border: 1px solid transparent
+}
+
+.alert-success,.alert-info {
+    background: #eaf2e2;
+    color: #456637
+}
+
+.alert-warning {
+    background: #f7efd9;
+    color: #80692e
+}
+
+.alert-danger {
+    background: #faece8;
+    color: #9d4f3b
+}
+
+.jana-auth {
+    background: #f5f7f2
+}
+
+.jana-auth-shell {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    min-height: 100vh
+}
+
+.jana-auth-story {
+    background: #173e35;
+    color: white;
+    padding: 55px 10%;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    overflow: hidden
+}
+
+.jana-auth-story>.jana-tagline {
+    margin-bottom: 30px
+}
+
+.jana-auth-message {
+    margin: auto 0;
+    padding: 30px 0
+}
+
+.jana-auth-message .jana-eyebrow {
+    color: #bbd58f
+}
+
+.jana-auth-message h1 {
+    font-size: clamp(35px,4.2vw,65px);
+    letter-spacing: -2px;
+    line-height: 1.12;
+    font-weight: 600;
+    margin: 22px 0
+}
+
+.jana-auth-message p {
+    max-width: 380px;
+    color: #b4c9b8;
+    font-size: 16px
+}
+
+.jana-auth-seal {
+    width: 120px;
+    height: 120px;
+    border: 1px solid #5b795e;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    font: 65px Georgia;
+    color: #c4d992;
+    transform: rotate(-12deg);
+    margin-top: 28px
+}
+
+.jana-auth-story>small {
+    font-size: 11px;
+    color: #a6bdaf
+}
+
+.jana-auth-form {
+    width: 100%;
+    max-width: 470px;
+    padding: 55px 38px;
+    margin: auto;
+    box-sizing: border-box
+}
+
+.jana-auth-form h1 {
+    font-size: 35px;
+    letter-spacing: -1.2px;
+    margin: 14px 0
+}
+
+.jana-auth-help {
+    font-size: 12px;
+    line-height: 1.8;
+    color: var(--jana-muted);
+    margin-top: 27px
+}
+
+.jana-role-label {
+    display: inline-block;
+    border-radius: 20px;
+    background: #edf2e5;
+    color: #536d45;
+    padding: 5px 12px;
+    font-size: 11px
+}
+
+.jana-form-width {
+    max-width: 850px
+}
+
+.jana-form-width .card-body {
+    padding: 30px!important
+}
+
+@media(min-width:1500px) {
+    .jana-sidebar {
+        padding-left: 28px;
+        padding-right: 28px
+    }
+
+    .jana-shell {
+        grid-template-columns: 260px minmax(0,1fr)
+    }
+
+}
+
+@media(max-width:1000px) {
+    .jana-shell {
+        grid-template-columns: 210px minmax(0,1fr)
+    }
+
+    .jana-sidebar {
+        padding: 28px 15px
+    }
+
+    .jana-top-name {
+        display: none
+    }
+
+    .jana-stat {
+        padding: 16px
+    }
+
+    .jana-stat strong {
+        font-size: 19px
+    }
+
+}
+
+@media(max-width:700px) {
+    .jana-shell {
+        display: block
+    }
+
+    .jana-sidebar {
+        min-height: auto;
+        padding: 18px 6%
+    }
+
+    .jana-tagline,.jana-nav-label,.jana-side-note,.jana-account {
+        display: none
+    }
+
+    .jana-sidebar .jana-brand {
+        font-size: 24px
+    }
+
+    .jana-nav {
+        flex-direction: row;
+        flex-wrap: wrap;
+        gap: 5px;
+        margin-top: 15px
+    }
+
+    .jana-nav-item {
+        padding: 8px 10px;
+        font-size: 12px
+    }
+
+    .jana-nav-icon,.jana-nav-dot {
+        display: none
+    }
+
+    .jana-topbar {
+        min-height: 72px;
+        padding: 15px 6%
+    }
+
+    .jana-content {
+        padding: 24px 6% 18px
+    }
+
+    .jana-profile-hero {
+        padding: 24px
+    }
+
+    .jana-person-symbol {
+        width: 65px;
+        height: 65px;
+        font-size: 28px
+    }
+
+    .jana-stat-grid {
+        gap: 9px
+    }
+
+    .jana-stat {
+        padding: 13px
+    }
+
+    .jana-stat strong {
+        font-size: 16px
+    }
+
+    .jana-stat small {
+        font-size: 10px
+    }
+
+    .jana-hero {
+        padding: 24px
+    }
+
+    .jana-heading,h1.h3 {
+        font-size: 27px
+    }
+
+    .jana-footer {
+        font-size: 10px;
+        margin-top: 28px
+    }
+
+    .jana-footer span:last-child {
+        display: none
+    }
+
+    .jana-auth-shell {
+        display: block
+    }
+
+    .jana-auth-story {
+        padding: 24px 8%
+    }
+
+    .jana-auth-story>.jana-tagline,.jana-auth-story>small,.jana-auth-message {
+        display: none
+    }
+
+    .jana-auth-form {
+        padding: 38px 8%
+    }
+
+    .jana-form-width .card-body {
+        padding: 22px!important
+    }
+
+    .jana-top-profile .jana-avatar {
+        width: 32px;
+        height: 32px
+    }
+
+}

@@ -1,0 +1,5 @@
+<section class="notice"><strong>Итоговый тест по курсу</strong>
+{% if course_progress.quiz.passed %}<p>✓ Сдан. Лучший результат: {{ course_progress.quiz.best_score }}%.</p>
+{% elif course_progress.completed_lessons == course_progress.total_lessons and course_progress.total_lessons %}<p>Уроки пройдены. Проверь знания — нужно набрать не меньше 80%.</p>
+{% else %}<p>Сначала пройди все уроки. Затем здесь откроется итоговый тест.</p>{% endif %}
+{% if course_progress.completed_lessons == course_progress.total_lessons and course_progress.total_lessons %}<a class="button" href="{{ url_for('academy_pages.final_quiz',course_id=course.id) }}">{{ 'Посмотреть результат / пересдать' if course_progress.quiz.attempts else 'Пройти итоговый тест' }} →</a>{% endif %}</section>

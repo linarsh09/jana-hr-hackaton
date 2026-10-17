@@ -1,0 +1,73 @@
+Jana Academy integration
+
+Architecture
+Uses app.extensions.db and the existing session login (g.current_user).
+HTML: /academy/; the account Courses route redirects here.
+Templates live inside the Academy Blueprint, separate from account templates.
+Employee accounts must have an Employee profile linked by Employee.user_id.
+Managers need an Employee profile; direct reports use Employee.manager_id.
+HR and ADMIN can manage all active employees; managers only direct reports.
+Only active users with the EMPLOYEE role can take assigned courses.
+Assignments belong to Employee profiles; lesson completions belong to User accounts.
+Repeated assignment and completion are idempotent and preserve progress.
+Result includes lesson progress and a final quiz when questions exist for the course.
+Courses with quiz questions complete only after all lessons and a passed quiz (80%).
+Courses without questions retain lesson-only completion for compatibility.
+Quiz questions are authored through QuizQuestion models (options + correct_option index).
+Never serialize correct_option into employee-facing responses.
+Demo questions are examples based on demo lessons, not real company training content.
+Creating/editing catalog content is currently through models, not an editor UI.
+
+Database integration
+Coordinate the migration head with the team before merging.
+Academy migration chain:
+b610c2d9a241 -> a10c20261017 -> a11c20261017 -> a12c20261017 -> a13c20261017.
+After the team's existing migrations, apply Academy using:
+flask --app app:create_app db upgrade
+The shared application requires DATABASE_URL and SECRET_KEY.
+Do not run run_demo.py against the shared application: it deliberately overrides
+DATABASE_URL and SECRET_KEY with a separate local SQLite database and session key.
+db.create_all in the demo launcher is only for this disposable demo database.
+Academy migrations were tested with SQLite upgrade/downgrade over existing base
+tables. The team's full migration chain and PostgreSQL still need integration QA.
+Existing users receive no automatic assignments in the shared application.
+Assign courses as HR or manager after applying the migrations.
+No account/employee models or existing permission helpers are changed by Academy.
+
+JSON API (all endpoints require the existing session cookie)
+GET /api/academy/courses
+GET /api/academy/courses/<course_id>
+GET /api/academy/courses/<course_id>/lessons/<lesson_id>
+GET /api/academy/courses/<course_id>/progress (employee's own result)
+GET /api/academy/employees (eligible assignment targets in manager/HR scope)
+GET /api/academy/assignments (scoped employee progress report)
+GET /api/academy/csrf-token
+POST /api/academy/assignments
+  JSON: {"employee_id": 1, "course_id": 1}
+POST /api/academy/lessons/<lesson_id>/complete
+GET /api/academy/courses/<course_id>/quiz
+POST /api/academy/courses/<course_id>/quiz
+  JSON: {"submission_id": "from GET quiz response", "answers": {"question_id": 0}}
+  Answers use zero-based option indexes and must include every question.
+  Reusing submission_id returns the same attempt without counting it twice.
+  Quiz requires all lessons completed; grading is performed on the server.
+  Quiz score, best/last score, attempts and last attempt UTC date appear in scoped reports.
+POST requests require X-CSRF-Token from the csrf-token endpoint in the same session.
+HTML forms use the same token as a hidden csrf_token field.
+Progress: total_lessons, completed_lessons, progress_percent,
+completed_lesson_ids, quiz summary, status (not_started/in_progress/test_pending/completed).
+An empty course has 0% progress and is not completed.
+Unassigned courses return 404 to workers on both HTML and API routes.
+
+Local demo and checks (Windows, from the repository folder)
+.venv\Scripts\python.exe run_demo.py
+http://127.0.0.1:5000/academy/
+Demo accounts: academy_demo (assigned worker), academy_worker (unassigned worker),
+academy_hr (HR), academy_manager (manager of the two demo workers).
+Demo password for these accounts: DemoAcademy123!
+These synthetic accounts are created only in the separate local demo database.
+.venv\Scripts\python.exe -m unittest discover -s tests -v
+
+Shared release is not yet verified: coordinate the UI with the designer,
+run team integration checks, and review the migration chain before publishing.
+Nothing here configures shared hosting or sends code to GitHub.
