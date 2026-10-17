@@ -1,8 +1,8 @@
 """initial HR models
 
-Revision ID: 286a9185b864
+Revision ID: f41071fcd162
 Revises: 
-Create Date: 2026-09-24 22:33:08.714861
+Create Date: 2026-10-17 10:35:14.480848
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = '286a9185b864'
+revision = 'f41071fcd162'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -26,22 +26,41 @@ def upgrade():
     sa.PrimaryKeyConstraint('id'),
     sa.UniqueConstraint('name')
     )
+    op.create_table('users',
+    sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('username', sa.String(length=100), nullable=False),
+    sa.Column('password_hash', sa.String(length=255), nullable=False),
+    sa.Column('is_active', sa.Boolean(), nullable=False),
+    sa.Column('created_at', sa.DateTime(), nullable=False),
+    sa.Column('role', sa.Enum('ADMIN', 'HR', 'MANAGER', 'EMPLOYEE', name='user_role'), nullable=False),
+    sa.PrimaryKeyConstraint('id')
+    )
+    with op.batch_alter_table('users', schema=None) as batch_op:
+        batch_op.create_index(batch_op.f('ix_users_username'), ['username'], unique=True)
+
     op.create_table('employees',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('first_name', sa.String(length=100), nullable=False),
     sa.Column('last_name', sa.String(length=100), nullable=False),
     sa.Column('email', sa.String(length=255), nullable=False),
     sa.Column('position', sa.String(length=150), nullable=False),
+    sa.Column('company', sa.String(length=150), nullable=True),
     sa.Column('salary', sa.Numeric(precision=12, scale=2), nullable=True),
     sa.Column('hire_date', sa.Date(), nullable=False),
     sa.Column('vacation_days', sa.Integer(), nullable=False),
     sa.Column('department_id', sa.Integer(), nullable=False),
+    sa.Column('user_id', sa.Integer(), nullable=True),
+    sa.Column('manager_id', sa.Integer(), nullable=True),
     sa.Column('created_at', sa.DateTime(), nullable=False),
     sa.ForeignKeyConstraint(['department_id'], ['departments.id'], ),
-    sa.PrimaryKeyConstraint('id')
+    sa.ForeignKeyConstraint(['manager_id'], ['employees.id'], ),
+    sa.ForeignKeyConstraint(['user_id'], ['users.id'], ),
+    sa.PrimaryKeyConstraint('id'),
+    sa.UniqueConstraint('user_id')
     )
     with op.batch_alter_table('employees', schema=None) as batch_op:
         batch_op.create_index(batch_op.f('ix_employees_email'), ['email'], unique=True)
+        batch_op.create_index(batch_op.f('ix_employees_manager_id'), ['manager_id'], unique=False)
 
     op.create_table('ai_conversations',
     sa.Column('id', sa.Integer(), nullable=False),
@@ -105,8 +124,13 @@ def downgrade():
 
     op.drop_table('ai_conversations')
     with op.batch_alter_table('employees', schema=None) as batch_op:
+        batch_op.drop_index(batch_op.f('ix_employees_manager_id'))
         batch_op.drop_index(batch_op.f('ix_employees_email'))
 
     op.drop_table('employees')
+    with op.batch_alter_table('users', schema=None) as batch_op:
+        batch_op.drop_index(batch_op.f('ix_users_username'))
+
+    op.drop_table('users')
     op.drop_table('departments')
     # ### end Alembic commands ###

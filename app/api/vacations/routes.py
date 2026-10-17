@@ -1,6 +1,7 @@
 from datetime import date
 from app.api.vacations.service import VacationService
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, jsonify, request, g
+from app.core.permissions import can_access_employee
 
 
 vacations_bp = Blueprint(
@@ -12,6 +13,8 @@ vacations_bp = Blueprint(
 
 @vacations_bp.post("")
 def create_vacation_request():
+    if getattr(g, "current_user", None) is None:
+        return jsonify({"error": "Authentication required"}), 401
     data = request.get_json()
 
     if not data:
@@ -38,6 +41,8 @@ def create_vacation_request():
         }), 400
 
     try:
+        if not can_access_employee(data["employee_id"]):
+            return jsonify({"error": "Forbidden"}), 403
         start_date = date.fromisoformat(
             data["start_date"]
         )

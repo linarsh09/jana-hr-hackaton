@@ -19,6 +19,13 @@ class VacationStatus(str, Enum):
     REJECTED = "rejected"
 
 
+class RequestType(str, Enum):
+    VACATION = "vacation"
+    SICK_LEAVE = "sick_leave"
+    CERTIFICATE = "certificate"
+    OTHER = "other"
+
+
 class ReviewStatus(str, Enum):
     DRAFT = "draft"
     COMPLETED = "completed"
@@ -94,6 +101,8 @@ class Employee(db.Model):
         nullable=False,
     )
 
+    company = db.Column(db.String(150), nullable=True)
+
     salary = db.Column(
         db.Numeric(12, 2),
         nullable=True,
@@ -116,6 +125,10 @@ class Employee(db.Model):
         nullable=False,
     )
 
+    # Optional while test accounts and legacy employee records are being linked.
+    user_id = db.Column(db.Integer, db.ForeignKey("users.id"), unique=True)
+    manager_id = db.Column(db.Integer, db.ForeignKey("employees.id"), nullable=True, index=True)
+
     created_at = db.Column(
         db.DateTime,
         default=datetime.utcnow,
@@ -125,6 +138,14 @@ class Employee(db.Model):
     department = db.relationship(
         "Department",
         back_populates="employees",
+    )
+
+    user = db.relationship("User", back_populates="employee", foreign_keys=[user_id])
+    manager = db.relationship(
+        "Employee", remote_side=[id], back_populates="direct_reports", foreign_keys=[manager_id]
+    )
+    direct_reports = db.relationship(
+        "Employee", back_populates="manager", foreign_keys=[manager_id]
     )
 
     vacation_requests = db.relationship(
@@ -174,11 +195,17 @@ class VacationRequest(db.Model):
 
     start_date = db.Column(
         db.Date,
-        nullable=False,
+        nullable=True,
     )
 
     end_date = db.Column(
         db.Date,
+        nullable=True,
+    )
+
+    request_type = db.Column(
+        SQLEnum(RequestType, name="request_type"),
+        default=RequestType.VACATION,
         nullable=False,
     )
 
@@ -209,6 +236,8 @@ class VacationRequest(db.Model):
 
     @property
     def days(self):
+        if self.start_date is None or self.end_date is None:
+            return 0
         return (self.end_date - self.start_date).days + 1
 
 
@@ -337,6 +366,7 @@ class AIConversation(db.Model):
 class UserRole(enum.Enum):
     ADMIN = "admin"
     HR = "hr"
+    MANAGER = "manager"
     EMPLOYEE = "employee"
 
 
@@ -377,6 +407,8 @@ class User(db.Model):
         nullable=False,
         default=UserRole.EMPLOYEE,
     )
+
+    employee = db.relationship("Employee", back_populates="user", uselist=False, foreign_keys="Employee.user_id")
 
     def __repr__(self):
         return f"<User {self.username} ({self.role.value})>"

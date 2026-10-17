@@ -1,13 +1,68 @@
-{% extends "_layout.html" %}
+{% extends "account_layout.html" %}
+{% set active_page = 'profile' %}
+{% block title %}Профиль{% endblock %}
+{% block page_title %}Личный кабинет · Профиль{% endblock %}
 
 {% block content %}
-    WELCOME TO ANTI BOND!
+<div class="row g-4">
+    <div class="col-12">
+        <h1 class="h3 mb-1">Мой профиль</h1>
+        <p class="text-secondary">Личные и кадровые данные</p>
+    </div>
 
-    <h1 class="mb-4">WELCOME TO ANTI BOND!</h1>
+    <div class="col-12 col-xl-7">
+        <section class="card border-0 shadow-sm h-100">
+            <div class="card-body p-4">
+                <h2 class="h5 mb-4">Данные сотрудника</h2>
+                {% if employee %}
+                <dl class="row mb-0">
+                    <dt class="col-sm-5 text-secondary">Ф.И.О.</dt><dd class="col-sm-7">{{ employee.full_name }}</dd>
+                    <dt class="col-sm-5 text-secondary">Компания</dt><dd class="col-sm-7">{{ employee.company or 'Не указана' }}</dd>
+                    <dt class="col-sm-5 text-secondary">Должность</dt><dd class="col-sm-7">{{ employee.position }}</dd>
+                    <dt class="col-sm-5 text-secondary">Подразделение</dt><dd class="col-sm-7">{{ employee.department.name }}</dd>
+                    <dt class="col-sm-5 text-secondary">Руководитель</dt><dd class="col-sm-7">{{ employee.manager.full_name if employee.manager else 'Не назначен' }}</dd>
+                    <dt class="col-sm-5 text-secondary">Дата приёма</dt><dd class="col-sm-7">{{ employee.hire_date.strftime('%d.%m.%Y') }}</dd>
+                    <dt class="col-sm-5 text-secondary">Остаток отпуска</dt><dd class="col-sm-7">{{ available_days }} дн. из {{ employee.vacation_days }}</dd>
+                </dl>
+                {% else %}
+                <div class="alert alert-info mb-0">К учётной записи пока не привязана кадровая карточка. Для регистрации это ожидаемо; HR сможет связать её позднее.</div>
+                {% endif %}
+            </div>
+        </section>
+    </div>
 
-    <form method="POST" action="{{ url_for('users.logout') }}">
-        <button type="submit" class="btn btn-warning">
-            Выйти из системы
-        </button>
-    </form>
+    <div class="col-12 col-xl-5">
+        <section class="card border-0 shadow-sm">
+            <div class="card-body p-4">
+                <h2 class="h5">Уведомления</h2>
+                <p class="text-secondary mb-0">Уведомлений пока нет.</p>
+            </div>
+        </section>
+    </div>
+
+    {% if user.role.value in ['manager', 'hr', 'admin'] %}
+    <div class="col-12">
+        <section class="card border-0 shadow-sm">
+            <div class="card-body p-4">
+                <h2 class="h5 mb-3">Сменить пароль</h2>
+                <form method="post" action="{{ url_for('users.change_password') }}" class="row g-3 align-items-end">
+                    <div class="col-12 col-md-4">
+                        <label class="form-label" for="current_password">Текущий пароль</label>
+                        <input class="form-control" id="current_password" name="current_password" type="password" required autocomplete="current-password">
+                    </div>
+                    <div class="col-12 col-md-4">
+                        <label class="form-label" for="new_password">Новый пароль</label>
+                        <input class="form-control" id="new_password" name="new_password" type="password" minlength="8" required autocomplete="new-password">
+                    </div>
+                    <div class="col-12 col-md-4">
+                        <label class="form-label" for="confirm_password">Повторите пароль</label>
+                        <input class="form-control" id="confirm_password" name="confirm_password" type="password" minlength="8" required autocomplete="new-password">
+                    </div>
+                    <div class="col-12"><button class="btn btn-primary" type="submit">Изменить пароль</button></div>
+                </form>
+            </div>
+        </section>
+    </div>
+    {% endif %}
+</div>
 {% endblock %}

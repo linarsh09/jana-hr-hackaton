@@ -1,17 +1,30 @@
 from datetime import date
 from app.api.vacations.repository import VacationRepository
 from app.api.employees.repository import EmployeeRepository
-from app.models import VacationRequest, VacationStatus
+from app.models import RequestType, VacationRequest, VacationStatus
 
 
 class VacationService:
 
     @staticmethod
+    def get_available_days(employee_id: int) -> int:
+        employee = EmployeeRepository.get_by_id(employee_id)
+        if employee is None:
+            raise ValueError("Employee not found")
+        reserved_days = VacationRepository.get_reserved_days(employee_id)
+        return max(employee.vacation_days - reserved_days, 0)
+
+    @staticmethod
+    def get_requests(employee_id: int):
+        return VacationRepository.get_for_employee(employee_id)
+
+    @staticmethod
     def create_request(
         employee_id: int,
-        start_date: date,
-        end_date: date,
+        start_date: date | None,
+        end_date: date | None,
         comment: str | None = None,
+        request_type: RequestType | str = RequestType.VACATION,
     ):
         # Проверяем сотрудника
         employee = EmployeeRepository.get_by_id(employee_id)
@@ -19,26 +32,37 @@ class VacationService:
         if employee is None:
             raise ValueError("Employee not found")
 
-        # Проверяем даты
-        if start_date > end_date:
-            raise ValueError(
-                "Start date cannot be after end date"
-            )
+        try:
+            request_type = request_type if isinstance(request_type, RequestType) else RequestType(request_type)
+        except ValueError:
+            raise ValueError("Unknown request type")
 
-        # Количество дней
-        days = (end_date - start_date).days + 1
+        if request_type in (RequestType.VACATION, RequestType.SICK_LEAVE) and (start_date is None or end_date is None):
+            raise ValueError("Select both start and end dates")
 
-        # Проверяем остаток отпуска
-        if days > employee.vacation_days:
-            raise ValueError(
-                f"Not enough vacation days. "
-                f"Available: {employee.vacation_days}"
-            )
+        if (start_date is None) != (end_date is None):
+            raise ValueError("Select both start and end dates")
+
+        if start_date is not None and end_date is not None and start_date > end_date:
+            raise ValueError("Start date cannot be after end date")
+
+        if request_type in (RequestType.CERTIFICATE, RequestType.OTHER) and not comment:
+            raise ValueError("Describe what you need in the comment")
+
+        if request_type == RequestType.VACATION and VacationRepository.has_date_overlap(employee_id, start_date, end_date):
+            raise ValueError("A pending or approved vacation already covers these dates")
+
+        if request_type == RequestType.VACATION:
+            days = (end_date - start_date).days + 1
+            available_days = VacationService.get_available_days(employee_id)
+            if days > available_days:
+                raise ValueError(f"Not enough vacation days. Available: {available_days}")
 
         vacation_request = VacationRequest(
             employee_id=employee_id,
             start_date=start_date,
             end_date=end_date,
+            request_type=request_type,
             status=VacationStatus.PENDING,
             comment=comment,
         )

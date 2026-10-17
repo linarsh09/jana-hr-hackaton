@@ -87,22 +87,17 @@
 
         <!-- Замени href на адреса своих страниц -->
         <nav class="nav flex-column gap-2" aria-label="Основная навигация">
-            <a href="#employees"
+            <a href="{{ url_for('admin.employees') }}"
                class="nav-link {{ 'active' if current_page == 'employees' else '' }}"
                {% if current_page == 'employees' %}aria-current="page"{% endif %}>
                 Сотрудники
             </a>
 
-            <a href="#reports"
-               class="nav-link {{ 'active' if current_page == 'reports' else '' }}"
-               {% if current_page == 'reports' %}aria-current="page"{% endif %}>
-                Отчеты
-            </a>
         </nav>
 
         <div class="sidebar-footer mt-auto pt-3 border-top border-secondary">
             <nav class="nav flex-column mb-2" aria-label="Личный кабинет">
-                <a href="#profile"
+                <a href="{{ url_for('users.profile') }}"
                    class="nav-link {{ 'active' if current_page == 'profile' else '' }}"
                    {% if current_page == 'profile' %}aria-current="page"{% endif %}>
                     Профиль

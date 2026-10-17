@@ -40,7 +40,7 @@ def create_app():
     # чтобы Alembic их увидел
     from app import models
 
-    from app.api.employees.routes import employees_bp
+    from app.api.employee.routes import employees_bp
     from app.api.vacations.routes import vacations_bp
     from app.api.account.routes import account_bp
     from app.api.admin.routes import admin_bp
