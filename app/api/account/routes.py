@@ -1,7 +1,11 @@
-from flask import Blueprint, render_template, request, session, redirect, url_for
+from flask import Blueprint, render_template, request, session, redirect, url_for, g, flash
 from .service import AccountService
 from .validators import validate_login_form, validate_register_form
 from app.core.permissions import login_required, role_required
+from app.models import Role
+# INTEGRATION POINT (vacations): profile reads the available balance from the
+# vacations module; keep its calculation there and pass only the result here.
+from app.api.vacations.service import VacationService
 
 
 account_bp = Blueprint(
@@ -46,18 +50,76 @@ def login():
     session["user_id"] = user.id
 
     # Перенаправляем на профиль.
-    return redirect("/account/profile")
+    return redirect(url_for("users.profile"))
 
 
 @account_bp.route("/profile", methods=["GET"])
 @login_required
 def profile():
-    user_id = session.get("user_id")
+    employee = g.current_user.employee
+    available_days = VacationService.get_available_days(employee.id) if employee else None
+    return render_template(
+        "account/profile.html",
+        user=g.current_user,
+        employee=employee,
+        available_days=available_days,
+    )
 
-    if user_id is None:
-        return redirect(url_for("users.login"))
 
-    return render_template("admin/index.html")
+@account_bp.route("/requests", methods=["GET"])
+@login_required
+@role_required("employee", "manager", "hr")
+def requests_page():
+    # INTEGRATION POINT (requests): connect the request service here and pass
+    # the employee's own requests, manager's direct-report requests, or all
+    # requests for HR. Keep create/approve actions restricted by role.
+    return render_template(
+        "account/requests.html",
+        user=g.current_user,
+        # TODO: Коллега подключит создание и выборку заявок с разграничением по ролям.
+    )
+
+
+@account_bp.route("/courses", methods=["GET"])
+@login_required
+def courses_page():
+    # INTEGRATION POINT (academy): connect course assignments/progress for
+    # employees and the assignment flow for HR/managers here.
+    return render_template("account/courses.html", user=g.current_user)
+
+
+@account_bp.route("/team", methods=["GET"])
+@login_required
+@role_required("manager")
+def team_page():
+    manager = g.current_user.employee
+    # Hide orphaned/deactivated profiles left after account removal/deactivation.
+    employees = [
+        employee
+        for employee in manager.direct_reports
+        if employee.user is not None and employee.user.is_active
+    ] if manager else []
+    return render_template("account/team.html", employees=employees)
+
+
+@account_bp.route("/password", methods=["POST"])
+@login_required
+@role_required("manager", "hr")
+def change_password():
+    current_password = request.form.get("current_password", "")
+    new_password = request.form.get("new_password", "")
+    confirm_password = request.form.get("confirm_password", "")
+
+    if not AccountService.verify_password(g.current_user, current_password):
+        flash("Текущий пароль указан неверно.", "danger")
+    elif len(new_password) < 8:
+        flash("Новый пароль должен содержать минимум 8 символов.", "danger")
+    elif new_password != confirm_password:
+        flash("Новые пароли не совпадают.", "danger")
+    else:
+        AccountService.change_password(g.current_user, new_password)
+        flash("Пароль успешно изменён.", "success")
+    return redirect(url_for("users.profile"))
 
 
 @account_bp.route("/register", methods=["GET", "POST"])

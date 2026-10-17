@@ -6,77 +6,27 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>JanaMen</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous" />
-    <style>
-      body {
-        background-color: #ebedeb;
-      }
-    </style>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/jana-theme.css') }}">
   </head>
-  <body>
-
-<nav class="navbar navbar-expand-lg bg-white shadow-sm py-3">
-  <div class="container">
-    <a class="navbar-brand d-flex align-items-center gap-2 fw-bold" href="/">
-      <img src="/static/images/navbar.jpg"
-           alt="DIGITAL HR"
-           width="38"
-           height="38"
-           class="rounded">
-      <span>DIGITAL HR</span>
-    </a>
-
-    <button class="navbar-toggler" type="button"
-            data-bs-toggle="collapse"
-            data-bs-target="#mainNavbar"
-            aria-controls="mainNavbar"
-            aria-expanded="false"
-            aria-label="Открыть меню">
-      <span class="navbar-toggler-icon"></span>
-    </button>
-
-    <div class="collapse navbar-collapse" id="mainNavbar">
-      <ul class="navbar-nav ms-auto align-items-lg-center gap-lg-3">
-        <li class="nav-item dropdown">
-          <a class="nav-link dropdown-toggle"
-             href="#"
-             id="aboutDropdown"
-             role="button"
-             data-bs-toggle="dropdown"
-             aria-expanded="false">
+  <body class="jana-auth">
+    <nav class="navbar bg-body-tertiary">
+      <div class="container-fluid">
+        <a class="navbar-brand" href="{{ url_for('landing.home') }}">
+          <img src="/static/images/navbar.jpg" alt="" width="30" height="24" class="d-inline-block align-text-top" />
+          DIGITAL HR
+        </a>
+        <div class="dropdown">
+          <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
             О компании
-          </a>
-
-          <ul class="dropdown-menu dropdown-menu-end"
-              aria-labelledby="aboutDropdown">
-            <li>
-              <a class="dropdown-item" href="#about">
-                О проекте
-              </a>
-            </li>
-            <li>
-              <a class="dropdown-item" href="#advantages">
-                Преимущества
-              </a>
-            </li>
-            <li>
-              <a class="dropdown-item" href="#contacts">
-                Контакты
-              </a>
-            </li>
-          </ul>
-        </li>
-
-        <li class="nav-item">
-          <a class="btn btn-success px-4 rounded-pill"
-             href="/account/login">
-            Войти
-          </a>
-        </li>
-      </ul>
-    </div>
-  </div>
-</nav>
-
+          </button>
+          <div class="dropdown-menu dropdown-menu-end p-3" style="min-width: 320px; max-width: min(90vw, 420px); white-space: normal;">
+            <h2 class="h6">О DIGITAL HR</h2>
+            <p class="mb-2">DIGITAL HR помогает собрать кадровую информацию, внутренние заявки и обучение в одном месте.</p>
+            <p class="mb-0">Для каждой роли предусмотрен свой набор разделов: сотрудникам — личные данные, руководителям — информация о команде, HR — кадровые данные компании.</p>
+          </div>
+        </div>
+      </div>
+    </nav>
 
     <div class="container">
       <div class="row min-vh-100 align-items-center justify-content-center">

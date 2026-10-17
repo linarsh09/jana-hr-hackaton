@@ -1,8 +1,8 @@
 """initial HR models
 
-Revision ID: da46c0c7aaba
+Revision ID: e289b3b3b1c2
 Revises: 
-Create Date: 2026-10-17 14:21:41.257285
+Create Date: 2026-10-17 17:05:05.619414
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = 'da46c0c7aaba'
+revision = 'e289b3b3b1c2'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -51,6 +51,7 @@ def upgrade():
     sa.Column('last_name', sa.String(length=100), nullable=False),
     sa.Column('email', sa.String(length=255), nullable=False),
     sa.Column('hire_date', sa.Date(), nullable=False),
+    sa.Column('vacation_days', sa.Integer(), server_default='24', nullable=False),
     sa.Column('salary', sa.Numeric(precision=12, scale=2), nullable=True),
     sa.Column('department_id', sa.Integer(), nullable=False),
     sa.Column('position_id', sa.Integer(), nullable=False),
@@ -134,6 +135,7 @@ def upgrade():
     op.create_table('vacation_requests',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('employee_id', sa.Integer(), nullable=False),
+    sa.Column('request_type', sa.String(length=30), nullable=False),
     sa.Column('start_date', sa.Date(), nullable=False),
     sa.Column('end_date', sa.Date(), nullable=False),
     sa.Column('status', sa.String(length=20), nullable=False),

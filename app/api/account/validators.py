@@ -34,7 +34,7 @@ def validate_register_form(username: str | None, password: str | None):
 
     if not password:
         errors["password"] = "Введите пароль."
-    elif len(password) < 3:
+    elif len(password) < 8:
         errors["password"] = "Пароль должен содержать минимум 8 символов."
     elif len(password) > 128:
         errors["password"] = "Пароль слишком длинный."

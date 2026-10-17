@@ -83,6 +83,7 @@
                         Сотрудник
                     </option>
 
+<<<<<<< HEAD
                     <option value="HR"
                         {% if request.form.get('role') == 'HR' %}
                             selected
@@ -96,6 +97,15 @@
                         {% endif %}>
                         Администратор
                     </option>
+=======
+                    <option value="MANAGER"
+                        {% if request.form.get('role') == 'MANAGER' %}
+                            selected
+                        {% endif %}>
+                        Руководитель
+                    </option>
+
+>>>>>>> 5f29f7dfd66bb823cea8250e252172c4414bd317
                 </select>
             </div>
 
