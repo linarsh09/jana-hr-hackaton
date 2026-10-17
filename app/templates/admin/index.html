@@ -1,0 +1,130 @@
+{% extends "admin_layout.html" %}
+{% set active_page = 'employees' %}
+
+{% block title %}Сотрудники{% endblock %}
+{% block page_title %}Сотрудники{% endblock %}
+
+{% block content %}
+<div class="mb-3">
+    <a href="{{ url_for('users.profile') }}" class="text-decoration-none text-secondary">← В личный кабинет</a>
+</div>
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+    <div>
+        <h1 class="h3 mb-1">Сотрудники</h1>
+        <p class="text-secondary mb-0">
+            Управление сотрудниками системы.
+        </p>
+    </div>
+
+    <div class="d-flex align-items-center gap-2">
+        <span class="badge text-bg-secondary fs-6">
+            Всего: {{ employees | length }}
+        </span>
+
+        <a href="{{ url_for('admin.create_employee') }}"
+        class="btn btn-primary">
+            <i class="bi bi-person-plus"></i>
+            Добавить сотрудника
+        </a>
+        <a href="{{ url_for('admin.create_employee_card') }}" class="btn btn-outline-primary">
+            Создать карточку
+        </a>
+        <a href="{{ url_for('admin.link_employee_account') }}" class="btn btn-outline-primary">
+            Связать учётку
+        </a>
+    </div>
+</div>
+
+<div class="card border-0 shadow-sm">
+    <div class="card-header bg-white border-0 px-4 pt-4 pb-3">
+        <h2 class="h5 mb-0">Список сотрудников</h2>
+    </div>
+
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th class="px-4 py-3">ID</th>
+                        <th class="py-3">Имя пользователя</th>
+                        <th class="py-3">Email</th>
+                        <th class="py-3">Роль</th>
+                        <th class="py-3 text-end pe-4">Действия</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    {% for employee in employees %}
+                    <tr>
+                        <td class="px-4">{{ employee.id }}</td>
+
+                        <td>
+                            <span class="fw-semibold">
+                                {{ employee.username }}
+                            </span>
+                        </td>
+
+                        <td>
+                            {{ employee.employee.email if employee.employee else 'Не указан' }}
+                        </td>
+
+                        <td>
+                            {% set role = employee.role.value
+                                if employee.role.value is defined
+                                else employee.role %}
+
+                            <span class="badge
+                                {% if role == 'ADMIN' %}
+                                    text-bg-danger
+                                {% elif role == 'HR' %}
+                                    text-bg-primary
+                                {% else %}
+                                    text-bg-secondary
+                                {% endif %}">
+                                {{ role }}
+                            </span>
+                        </td>
+                        <td class="text-end pe-4">
+                            <a href="{{ url_for('admin.edit_employee', employee_id=employee.id) }}"
+                            class="btn btn-sm btn-outline-primary"
+                            title="Редактировать">
+                                <i class="fa-solid fa-pen-to-square"></i>
+                            </a>
+
+                            <form method="POST"
+                                action="{{ url_for('admin.delete_employee', employee_id=employee.id) }}"
+                                class="d-inline"
+                                onsubmit="return confirm('Удалить сотрудника?');">
+
+                                <button type="submit"
+                                        class="btn btn-sm btn-outline-danger"
+                                        title="Удалить">
+                                    <i class="fa-solid fa-trash"></i>
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="4" class="text-center py-5">
+                            <div class="text-secondary mb-2">
+                                <strong>Сотрудники не найдены</strong>
+                            </div>
+                            <div class="small">
+                                В системе пока нет пользователей для отображения.
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="card-footer bg-white border-0 px-4 py-3">
+        <small class="text-secondary">
+            Количество записей: {{ employees | length }}
+        </small>
+    </div>
+</div>
+{% endblock %}

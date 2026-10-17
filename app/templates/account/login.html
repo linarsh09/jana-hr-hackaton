@@ -1,0 +1,26 @@
+{% extends "_layout.html" %}
+
+{% block content %}
+    {% if errors %}
+        {% if errors.get("general") %}
+            <div class="alert alert-danger">
+                {{ errors["general"] }}
+            </div>
+        {% endif %}
+    {% endif %}
+
+    {% if success %}
+        <div class="alert alert-success">
+            {{ success }}
+        </div>
+    {% endif %}
+
+    <div class="col-4 bg-white border rounded-3 p-5 shadow-lg">
+        <h3 class="text-center mb-3">Вход в систему</h3>
+        <form class="" method="POST" action="/account/login">
+            <input type="text" class="border border-primary form-control mb-3" placeholder="Ваш логин" name="username" />
+            <input type="password" class="border border-primary form-control mb-3" placeholder="Ваш пароль" name="password" />
+            <input type="submit" class="btn btn-primary w-100" value="Войти" />
+        </form>
+    </div>
+{% endblock %}

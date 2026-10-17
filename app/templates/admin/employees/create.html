@@ -1,0 +1,125 @@
+{% extends "admin_layout.html" %}
+{% set active_page = 'employees' %}
+
+{% block title %}Добавить сотрудника{% endblock %}
+{% block page_title %}Добавить сотрудника{% endblock %}
+
+{% block content %}
+<div class="mb-4">
+    <a href="{{ url_for('admin.employees') }}"
+       class="text-decoration-none text-secondary">
+        ← Назад к сотрудникам
+    </a>
+
+    <h1 class="h3 mt-3 mb-1">Добавить сотрудника</h1>
+    <p class="text-secondary mb-0">
+        Заполните данные нового пользователя системы.
+    </p>
+</div>
+
+<div class="card border-0 shadow-sm">
+    <div class="card-body p-4">
+        <form method="POST"
+              action="{{ url_for('admin.create_employee') }}">
+
+            {% if csrf_token is defined %}
+                <input type="hidden"
+                       name="csrf_token"
+                       value="{{ csrf_token() }}">
+            {% endif %}
+
+            <div class="mb-3">
+                <label for="username" class="form-label">
+                    Имя пользователя
+                </label>
+
+                <input
+                    type="text"
+                    class="form-control"
+                    id="username"
+                    name="username"
+                    maxlength="100"
+                    required
+                    autocomplete="username"
+                    placeholder="Введите имя пользователя"
+                    value="{{ request.form.get('username', '') }}"
+                >
+            </div>
+
+            <div class="mb-3">
+                <label for="password" class="form-label">
+                    Пароль
+                </label>
+
+                <input
+                    type="password"
+                    class="form-control"
+                    id="password"
+                    name="password"
+                    required
+                    minlength="8"
+                    autocomplete="new-password"
+                    placeholder="Минимум 8 символов"
+                >
+
+                <div class="form-text">
+                    Пароль будет сохранён в виде хеша.
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label for="role" class="form-label">
+                    Роль пользователя
+                </label>
+
+                <select class="form-select"
+                        id="role"
+                        name="role"
+                        required>
+                    <option value="EMPLOYEE"
+                        {% if request.form.get('role', 'EMPLOYEE') == 'EMPLOYEE' %}
+                            selected
+                        {% endif %}>
+                        Сотрудник
+                    </option>
+
+                    <option value="MANAGER"
+                        {% if request.form.get('role') == 'MANAGER' %}
+                            selected
+                        {% endif %}>
+                        Руководитель
+                    </option>
+
+                </select>
+            </div>
+
+            <div class="form-check form-switch mb-4">
+                <input
+                    class="form-check-input"
+                    type="checkbox"
+                    role="switch"
+                    id="is_active"
+                    name="is_active"
+                    value="1"
+                    checked
+                >
+
+                <label class="form-check-label" for="is_active">
+                    Учётная запись активна
+                </label>
+            </div>
+
+            <div class="d-flex flex-wrap gap-2">
+                <button type="submit" class="btn btn-primary">
+                    Добавить сотрудника
+                </button>
+
+                <a href="{{ url_for('admin.employees') }}"
+                   class="btn btn-outline-secondary">
+                    Отмена
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
