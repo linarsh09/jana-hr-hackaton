@@ -1,14 +1,14 @@
 
 from functools import wraps
 
-from flask import g, redirect, url_for, abort
-from app.models import User, UserRole
+from flask import g, redirect, url_for, abort, session
+
+from app.models import User
 from app.extensions import db
 
 
 def load_current_user():
-    """Загружает текущего пользователя для запроса."""
-    from flask import session
+    """Загружает текущего пользователя из сессии."""
 
     user_id = session.get("user_id")
 
@@ -27,9 +27,11 @@ def load_current_user():
 
 
 def login_required(view):
-    """Требует авторизации."""
+    """Разрешает доступ только авторизованным пользователям."""
+
     @wraps(view)
     def wrapped(*args, **kwargs):
+
         user = getattr(g, "current_user", None)
 
         if user is None:
@@ -40,18 +42,23 @@ def login_required(view):
     return wrapped
 
 
-def role_required(*allowed_roles: UserRole):
-    """Требует авторизации и одну из указанных ролей."""
-    @wraps(role_required)
+def role_required(*allowed_roles: str):
+    """Разрешает доступ пользователям с указанными ролями."""
+
     def decorator(view):
+
         @wraps(view)
         def wrapped(*args, **kwargs):
+
             user = getattr(g, "current_user", None)
 
             if user is None:
                 return redirect(url_for("users.login"))
 
-            if user.role not in allowed_roles:
+            if user.role is None:
+                abort(403)
+
+            if user.role.name not in allowed_roles:
                 abort(403)
 
             return view(*args, **kwargs)
