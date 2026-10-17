@@ -23,14 +23,14 @@
         <a class="text-white text-decoration-none fs-5 fw-bold py-3 px-2" href="{{ url_for('users.profile') }}">DIGITAL HR</a>
         <nav class="nav nav-pills flex-column gap-2 mt-4" aria-label="Личный кабинет">
             <a class="nav-link {{ 'active' if active_page == 'profile' else '' }}" href="{{ url_for('users.profile') }}">Профиль</a>
-            {% if g.current_user.role.value in ['employee', 'manager', 'hr', 'admin'] %}
+            {% if g.current_user.role.value in ['employee', 'manager', 'hr'] %}
                 <a class="nav-link {{ 'active' if active_page == 'requests' else '' }}" href="{{ url_for('users.requests_page') }}">Заявки</a>
             {% endif %}
             <a class="nav-link {{ 'active' if active_page == 'courses' else '' }}" href="{{ url_for('users.courses_page') }}">Курсы</a>
             {% if g.current_user.role.value == 'manager' %}
                 <a class="nav-link {{ 'active' if active_page == 'team' else '' }}" href="{{ url_for('users.team_page') }}">Мои сотрудники</a>
             {% endif %}
-            {% if g.current_user.role.value in ['hr', 'admin'] %}
+            {% if g.current_user.role.value == 'hr' %}
                 <a class="nav-link" href="{{ url_for('admin.employees') }}">Сотрудники</a>
             {% endif %}
         </nav>

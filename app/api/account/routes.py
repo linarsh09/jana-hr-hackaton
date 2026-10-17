@@ -3,6 +3,8 @@ from .service import AccountService
 from .validators import validate_login_form, validate_register_form
 from app.core.permissions import login_required, role_required
 from app.models import UserRole
+# INTEGRATION POINT (vacations): profile reads the available balance from the
+# vacations module; keep its calculation there and pass only the result here.
 from app.api.vacations.service import VacationService
 
 
@@ -66,8 +68,11 @@ def profile():
 
 @account_bp.route("/requests", methods=["GET"])
 @login_required
-@role_required(UserRole.EMPLOYEE, UserRole.MANAGER, UserRole.HR, UserRole.ADMIN)
+@role_required(UserRole.EMPLOYEE, UserRole.MANAGER, UserRole.HR)
 def requests_page():
+    # INTEGRATION POINT (requests): connect the request service here and pass
+    # the employee's own requests, manager's direct-report requests, or all
+    # requests for HR. Keep create/approve actions restricted by role.
     return render_template(
         "account/requests.html",
         user=g.current_user,
@@ -78,6 +83,8 @@ def requests_page():
 @account_bp.route("/courses", methods=["GET"])
 @login_required
 def courses_page():
+    # INTEGRATION POINT (academy): connect course assignments/progress for
+    # employees and the assignment flow for HR/managers here.
     return render_template("account/courses.html", user=g.current_user)
 
 
@@ -86,13 +93,18 @@ def courses_page():
 @role_required(UserRole.MANAGER)
 def team_page():
     manager = g.current_user.employee
-    employees = manager.direct_reports if manager else []
+    # Hide orphaned/deactivated profiles left after account removal/deactivation.
+    employees = [
+        employee
+        for employee in manager.direct_reports
+        if employee.user is not None and employee.user.is_active
+    ] if manager else []
     return render_template("account/team.html", employees=employees)
 
 
 @account_bp.route("/password", methods=["POST"])
 @login_required
-@role_required(UserRole.MANAGER, UserRole.HR, UserRole.ADMIN)
+@role_required(UserRole.MANAGER, UserRole.HR)
 def change_password():
     current_password = request.form.get("current_password", "")
     new_password = request.form.get("new_password", "")

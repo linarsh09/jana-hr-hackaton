@@ -43,6 +43,7 @@ def create_app():
     from app.api.employee.routes import employees_bp
     from app.api.vacations.routes import vacations_bp
     from app.api.account.routes import account_bp
+    from app.api.account.landing import landing_bp
     from app.api.admin.routes import admin_bp
 
     app.before_request(load_current_user)
@@ -50,6 +51,7 @@ def create_app():
     app.register_blueprint(employees_bp)
     app.register_blueprint(vacations_bp)
     app.register_blueprint(account_bp)
+    app.register_blueprint(landing_bp)
     app.register_blueprint(admin_bp)
 
     return app

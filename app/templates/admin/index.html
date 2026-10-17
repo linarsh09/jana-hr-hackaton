@@ -74,9 +74,7 @@
                                 else employee.role %}
 
                             <span class="badge
-                                {% if role == 'ADMIN' %}
-                                    text-bg-danger
-                                {% elif role == 'HR' %}
+                                {% if role|lower == 'hr' %}
                                     text-bg-primary
                                 {% else %}
                                     text-bg-secondary

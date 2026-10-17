@@ -1,0 +1,128 @@
+{% extends "admin_layout.html" %}
+{% set active_page = 'employees' %}
+{% block title %}Редактировать сотрудника{% endblock %}
+{% block page_title %}Редактировать сотрудника{% endblock %}
+
+{% block content %}
+<div class="mb-4">
+    <a href="{{ url_for('admin.employees') }}" class="text-decoration-none text-secondary">← К сотрудникам</a>
+    <h1 class="h3 mt-3 mb-1">Редактировать сотрудника</h1>
+    <p class="text-secondary">Учётная запись: {{ user.username }}</p>
+</div>
+
+<form method="post" action="{{ url_for('admin.edit_employee', employee_id=user.id) }}">
+    {% if csrf_token is defined %}
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    {% endif %}
+
+    <section class="card border-0 shadow-sm mb-4">
+        <div class="card-body p-4">
+            <h2 class="h5 mb-3">Учётная запись</h2>
+            <div class="row g-3">
+                <div class="col-12 col-md-6">
+                    <label class="form-label" for="username">Имя пользователя</label>
+                    <input class="form-control" id="username" name="username" maxlength="100" required value="{{ request.form.get('username', user.username) }}">
+                </div>
+                <div class="col-12 col-md-6">
+                    <label class="form-label" for="role">Роль</label>
+                    {% if user.role.value in ['employee', 'manager'] %}
+                    <select class="form-select" id="role" name="role" required>
+                        <option value="employee" {% if request.form.get('role', user.role.value) == 'employee' %}selected{% endif %}>Сотрудник</option>
+                        <option value="manager" {% if request.form.get('role', user.role.value) == 'manager' %}selected{% endif %}>Руководитель</option>
+                    </select>
+                    {% else %}
+                    <input class="form-control" id="role" value="{{ user.role.value }}" disabled>
+                    <div class="form-text">Роль HR или администратора нельзя изменить на этой странице.</div>
+                    {% endif %}
+                </div>
+                <div class="col-12">
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" role="switch" id="is_active" name="is_active" value="1" {% if request.form.get('is_active', '1' if user.is_active else '') == '1' %}checked{% endif %}>
+                        <label class="form-check-label" for="is_active">Учётная запись активна</label>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    {% if employee %}
+    <section class="card border-0 shadow-sm mb-4">
+        <div class="card-body p-4">
+            <h2 class="h5 mb-3">Кадровая карточка</h2>
+            <div class="row g-3">
+                <div class="col-12 col-md-6">
+                    <label class="form-label" for="first_name">Имя</label>
+                    <input class="form-control" id="first_name" name="first_name" maxlength="100" required value="{{ request.form.get('first_name', employee.first_name) }}">
+                </div>
+                <div class="col-12 col-md-6">
+                    <label class="form-label" for="last_name">Фамилия</label>
+                    <input class="form-control" id="last_name" name="last_name" maxlength="100" required value="{{ request.form.get('last_name', employee.last_name) }}">
+                </div>
+                <div class="col-12 col-md-6">
+                    <label class="form-label" for="email">Рабочий email</label>
+                    <input class="form-control" id="email" name="email" type="email" maxlength="255" required value="{{ request.form.get('email', employee.email) }}">
+                </div>
+                <div class="col-12 col-md-6">
+                    <label class="form-label" for="position">Должность</label>
+                    <select class="form-select" id="position" name="position" required>
+                        <option value="">Выберите должность</option>
+                        {% if employee.position not in position_values and employee.position != 'other' %}
+                        <option value="{{ employee.position }}" selected>{{ employee.position }}</option>
+                        {% endif %}
+                        {% for value, label in position_options %}
+                        <option value="{{ value }}" {% if request.form.get('position', employee.position) == value %}selected{% endif %}>{{ label }}</option>
+                        {% endfor %}
+                        <option value="other" {% if request.form.get('position') == 'other' %}selected{% endif %}>Другое</option>
+                    </select>
+                    <input class="form-control mt-2" id="other_position" name="other_position" maxlength="150" placeholder="Укажите должность" value="{{ request.form.get('other_position', employee.position if employee.position not in position_values else '') }}" {% if request.form.get('position') != 'other' %}hidden{% endif %}>
+                </div>
+                <div class="col-12 col-md-6">
+                    <label class="form-label" for="company">Компания</label>
+                    <input class="form-control" id="company" name="company" maxlength="150" value="{{ request.form.get('company', employee.company or '') }}">
+                </div>
+                <div class="col-12 col-md-6">
+                    <label class="form-label" for="department_id">Подразделение</label>
+                    <select class="form-select" id="department_id" name="department_id" required>
+                        {% for department in departments %}
+                        <option value="{{ department.id }}" {% if request.form.get('department_id', employee.department_id|string)|int == department.id %}selected{% endif %}>{{ department.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-12 col-md-6">
+                    <label class="form-label" for="hire_date">Дата приёма</label>
+                    <input class="form-control" id="hire_date" name="hire_date" type="date" required value="{{ request.form.get('hire_date', employee.hire_date.isoformat()) }}">
+                </div>
+                <div class="col-12 col-md-6">
+                    <label class="form-label" for="vacation_days">Дни отпуска</label>
+                    <input class="form-control" id="vacation_days" name="vacation_days" type="number" min="0" required value="{{ request.form.get('vacation_days', employee.vacation_days) }}">
+                </div>
+            </div>
+        </div>
+    </section>
+    {% else %}
+    <div class="alert alert-info">
+        У учётной записи пока нет кадровой карточки. Сохрани изменения учётки, затем создай карточку и свяжи её.
+        <a href="{{ url_for('admin.link_employee_account') }}" class="alert-link">Открыть связь учёток</a>.
+    </div>
+    {% endif %}
+
+    <div class="d-flex gap-2">
+        <button class="btn btn-primary" type="submit">Сохранить</button>
+        <a class="btn btn-outline-secondary" href="{{ url_for('admin.employees') }}">Отмена</a>
+    </div>
+</form>
+
+{% if employee %}
+<script>
+    const positionSelect = document.getElementById("position");
+    const otherPosition = document.getElementById("other_position");
+    function toggleOtherPosition() {
+        const isOther = positionSelect.value === "other";
+        otherPosition.hidden = !isOther;
+        otherPosition.required = isOther;
+    }
+    positionSelect.addEventListener("change", toggleOtherPosition);
+    toggleOtherPosition();
+</script>
+{% endif %}
+{% endblock %}

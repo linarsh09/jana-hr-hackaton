@@ -15,10 +15,20 @@
   <body>
     <nav class="navbar bg-body-tertiary">
       <div class="container-fluid">
-        <a class="navbar-brand" href="#">
+        <a class="navbar-brand" href="{{ url_for('landing.home') }}">
           <img src="/static/images/navbar.jpg" alt="" width="30" height="24" class="d-inline-block align-text-top" />
           DIGITAL HR
         </a>
+        <div class="dropdown">
+          <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+            О компании
+          </button>
+          <div class="dropdown-menu dropdown-menu-end p-3" style="min-width: 320px; max-width: min(90vw, 420px); white-space: normal;">
+            <h2 class="h6">О DIGITAL HR</h2>
+            <p class="mb-2">DIGITAL HR помогает собрать кадровую информацию, внутренние заявки и обучение в одном месте.</p>
+            <p class="mb-0">Для каждой роли предусмотрен свой набор разделов: сотрудникам — личные данные, руководителям — информация о команде, HR — кадровые данные компании.</p>
+          </div>
+        </div>
       </div>
     </nav>
 

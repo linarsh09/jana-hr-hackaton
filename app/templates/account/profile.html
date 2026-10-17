@@ -36,11 +36,12 @@
             <div class="card-body p-4">
                 <h2 class="h5">Уведомления</h2>
                 <p class="text-secondary mb-0">Уведомлений пока нет.</p>
+                <!-- INTEGRATION: app.api.notifications подключает получение и отображение уведомлений текущего пользователя. -->
             </div>
         </section>
     </div>
 
-    {% if user.role.value in ['manager', 'hr', 'admin'] %}
+    {% if user.role.value in ['manager', 'hr'] %}
     <div class="col-12">
         <section class="card border-0 shadow-sm">
             <div class="card-body p-4">

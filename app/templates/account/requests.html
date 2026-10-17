@@ -24,7 +24,7 @@
                     <h2 class="h5 mb-0">Новая заявка</h2>
                     <span class="badge text-bg-secondary">Остаток отпуска: —</span>
                 </div>
-                <!-- TODO: Подключить отправку заявки и валидацию вместе с ответственным за раздел заявок. -->
+                <!-- INTEGRATION: app.api.requests подключает POST/валидацию для employee; HR и manager не должны отправлять заявки. -->
                 <form onsubmit="return false;">
                     <div class="mb-3">
                         <label class="form-label" for="request_type">Вид заявки</label>
@@ -61,7 +61,7 @@
                     <table class="table align-middle mb-0">
                         <thead class="table-light"><tr><th class="ps-4">Вид</th><th>Период</th><th>Дни</th><th>Статус</th><th>Описание</th></tr></thead>
                         <tbody>
-                        <!-- TODO: Подключить список заявок и статусы из реализации коллеги. -->
+                        <!-- INTEGRATION: app.api.requests передаёт сюда личные заявки employee и их статусы. -->
                         <tr><td colspan="5" class="text-center text-secondary py-5">Здесь будут отображаться ваши заявки.</td></tr>
                         </tbody>
                     </table>
@@ -76,10 +76,10 @@
                 <h2 class="h5">Заявки на рассмотрение</h2>
                 {% if user.role.value == 'manager' %}
                 <p class="text-secondary">Здесь будут отображаться заявки ваших подчинённых.</p>
-                <!-- TODO: Подключить список заявок только от прямых подчинённых и действия рассмотрения. -->
+                <!-- INTEGRATION: app.api.requests передаёт заявки прямых подчинённых и подключает действия рассмотрения для manager. -->
                 {% else %}
                 <p class="text-secondary">Здесь будут отображаться заявки всех сотрудников.</p>
-                <!-- TODO: Подключить общий список заявок и действия рассмотрения для HR. -->
+                <!-- INTEGRATION: app.api.requests передаёт общий список заявок и подключает действия рассмотрения для HR. -->
                 {% endif %}
                 <div class="text-center text-secondary py-4">Список заявок пока не подключён.</div>
             </div>

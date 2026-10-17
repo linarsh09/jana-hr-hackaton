@@ -126,26 +126,29 @@ def seed():
         db.session.flush()
 
         # ==========================================
-        # Admin User
+        # HR test user (the system has one elevated role: HR).
         # ==========================================
 
-        admin = User.query.filter_by(username="admin").first()
+        hr_user = User.query.filter_by(username="hr").first()
+        if hr_user is None:
+            # Reuse the old seeded admin account if this database has one.
+            hr_user = User.query.filter_by(username="admin").first()
+            if hr_user is not None:
+                hr_user.username = "hr"
 
-        if admin is None:
-            admin = User(
-                username="admin",
-                password_hash=generate_password_hash("admin"),
-                role=UserRole.ADMIN,
+        if hr_user is None:
+            hr_user = User(
+                username="hr",
+                password_hash=generate_password_hash("hr"),
+                role=UserRole.HR,
                 is_active=True,
             )
 
-            db.session.add(admin)
-            print("Admin user created.")
-        else:
-            # Гарантируем, что существующий admin остаётся администратором.
-            admin.role = UserRole.ADMIN
-            admin.is_active = True
-            print("Admin user already exists.")
+            db.session.add(hr_user)
+
+        hr_user.role = UserRole.HR
+        hr_user.is_active = True
+        print("HR user ready.")
 
         # ==========================================
         # Vacation Requests
@@ -354,8 +357,8 @@ def seed():
         print("Vacation requests: 5")
         print("Performance reviews: 5")
         print("AI conversations: 5")
-        print("Admin username: admin")
-        print("Admin password: admin")
+        print("HR username: hr")
+        print("HR password: hr")
 
 
 if __name__ == "__main__":
