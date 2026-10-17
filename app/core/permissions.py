@@ -1,40 +1,33 @@
-
 from functools import wraps
 
 from flask import g, redirect, url_for, abort, session
+from sqlalchemy import false
 
-from app.models import User
+from app.models import Employee, User
 from app.extensions import db
 
 
 def load_current_user():
-    """Загружает текущего пользователя из сессии."""
-
     user_id = session.get("user_id")
 
+    g.current_user = None
+
     if user_id is None:
-        g.current_user = None
         return
 
     user = db.session.get(User, user_id)
 
     if user is None or not user.is_active:
         session.clear()
-        g.current_user = None
         return
 
     g.current_user = user
 
 
 def login_required(view):
-    """Разрешает доступ только авторизованным пользователям."""
-
     @wraps(view)
     def wrapped(*args, **kwargs):
-
-        user = getattr(g, "current_user", None)
-
-        if user is None:
+        if getattr(g, "current_user", None) is None:
             return redirect(url_for("users.login"))
 
         return view(*args, **kwargs)
@@ -42,14 +35,10 @@ def login_required(view):
     return wrapped
 
 
-def role_required(*allowed_roles: str):
-    """Разрешает доступ пользователям с указанными ролями."""
-
+def role_required(*allowed_roles):
     def decorator(view):
-
         @wraps(view)
         def wrapped(*args, **kwargs):
-
             user = getattr(g, "current_user", None)
 
             if user is None:
@@ -66,3 +55,90 @@ def role_required(*allowed_roles: str):
         return wrapped
 
     return decorator
+
+
+def current_employee():
+    user = getattr(g, "current_user", None)
+
+    if user is None:
+        return None
+
+    return user.employee
+
+
+def visible_employee_query():
+    user = getattr(g, "current_user", None)
+    query = Employee.query
+
+    if user is None or user.role is None:
+        return query.filter(false())
+
+    role_name = user.role.name
+
+    if role_name == "hr":
+        return query
+
+    employee = current_employee()
+
+    if employee is None:
+        return query.filter(false())
+
+
+    if role_name == "manager":
+        return query.filter(
+            (Employee.id == employee.id)
+            | (Employee.manager_id == employee.id)
+        )
+
+    if role_name == "employee":
+        return query.filter(Employee.id == employee.id)
+
+    return query.filter(false())
+
+
+
+def can_access_employee(employee):
+    target = (
+        employee
+        if isinstance(employee, Employee)
+        else db.session.get(Employee, employee)
+    )
+
+    if target is None:
+        return False
+
+    return (
+        visible_employee_query()
+        .filter(Employee.id == target.id)
+        .first()
+        is not None
+    )
+
+
+def can_manage_employee(employee):
+    user = getattr(g, "current_user", None)
+
+    if user is None or user.role is None:
+        return False
+
+    target = (
+        employee
+        if isinstance(employee, Employee)
+        else db.session.get(Employee, employee)
+    )
+
+    if target is None:
+        return False
+
+    if user.role.name == "hr":
+        return True
+
+    if user.role.name != "manager":
+        return False
+
+    own_employee = current_employee()
+
+    return (
+        own_employee is not None
+        and target.manager_id == own_employee.id
+    )

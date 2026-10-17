@@ -1,5 +1,5 @@
 from app.extensions import db
-from app.models import User
+from app.models import Employee, User
 
 
 class EmployeeRepository:
@@ -8,8 +8,8 @@ class EmployeeRepository:
         return User.query.order_by(User.id.asc()).all()
 
     @staticmethod
-    def get_by_id(user_id: int) -> User | None:
-        return User.query.get(user_id)
+    def get_by_id(user_id: int) -> Employee | None:
+        return db.session.get(Employee, user_id)
 
     # ДОБАВЛЕНО: поиск по имени пользователя
     @staticmethod

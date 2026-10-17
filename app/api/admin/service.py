@@ -1,6 +1,6 @@
 from werkzeug.security import generate_password_hash
 
-from app.api.employees.repository import EmployeeRepository
+from app.api.employee.repository import EmployeeRepository
 from app.models import User
 
 

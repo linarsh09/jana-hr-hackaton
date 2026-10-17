@@ -1,6 +1,7 @@
 from werkzeug.security import generate_password_hash
 
-from app.api.employees.repository import EmployeeRepository
+from app.api.employee.repository import EmployeeRepository
+from app.api.vacations.service import VacationService
 from app.models import User, UserRole
 
 
@@ -24,9 +25,12 @@ class EmployeeService:
             "full_name": employee.full_name,
             "email": employee.email,
             "position": employee.position,
+            "company": employee.company,
             "salary": float(employee.salary) if employee.salary else None,
             "hire_date": employee.hire_date.isoformat(),
             "vacation_days": employee.vacation_days,
+            "available_vacation_days": VacationService.get_available_days(employee.id),
+            "manager": employee.manager.full_name if employee.manager else None,
             "department": {
                 "id": employee.department.id,
                 "name": employee.department.name,
@@ -62,6 +66,9 @@ class EmployeeService:
             role = UserRole(str.lower(role_value))
         except (ValueError, TypeError):
             raise ValueError("Некорректная роль пользователя.")
+
+        if role not in (UserRole.EMPLOYEE, UserRole.MANAGER):
+            raise ValueError("Здесь можно создать только работника или руководителя.")
 
         password_hash = generate_password_hash(password)
 

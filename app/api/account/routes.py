@@ -1,8 +1,21 @@
-from flask import Blueprint, render_template, request, session, redirect, url_for
-from app.models import UserRole
+
+from flask import (
+    Blueprint,
+    render_template,
+    request,
+    session,
+    redirect,
+    url_for,
+    g,
+    flash,
+    abort,
+)
+
+from app.extensions import db
+from app.models import Role, VacationRequest
+from app.core.permissions import login_required, role_required
 from .service import AccountService
 from .validators import validate_login_form, validate_register_form
-from app.core.permissions import login_required, role_required
 
 
 account_bp = Blueprint(
@@ -29,8 +42,7 @@ def login():
             username=username or "",
         ), 400
 
-    account_service = AccountService()
-    user = account_service.login_user(
+    user = AccountService.login_user(
         data["username"],
         data["password"],
     )
@@ -42,35 +54,158 @@ def login():
             username=data["username"],
         ), 401
 
-    # Сохраняем состояние авторизации.
     session.clear()
     session["user_id"] = user.id
 
-    # Перенаправляем на профиль.
-    return redirect("/account/profile")
+    return redirect(url_for("users.profile"))
 
 
-@account_bp.route("/profile", methods=["GET"])
+@account_bp.route("/profile")
 @login_required
-@role_required(UserRole.ADMIN, UserRole.HR)
 def profile():
-    user_id = session.get("user_id")
+    user = g.current_user
+    employee = user.employee
 
-    if user_id is None:
-        return redirect(url_for("account.login"))
+    available_days = (
+        employee.vacation_balance
+        if employee is not None
+        else None
+    )
 
-    return render_template("admin/index.html")
+    return render_template(
+        "account/profile.html",
+        user=user,
+        employee=employee,
+        available_days=available_days,
+    )
+
+
+@account_bp.route("/requests")
+@login_required
+def requests_page():
+    user = g.current_user
+    employee = user.employee
+
+    role_name = user.role.name if user.role else None
+
+    if role_name == "hr":
+        requests = VacationRequest.query.all()
+
+    elif role_name == "manager":
+        if employee is None:
+            requests = []
+        else:
+            subordinate_ids = [
+                subordinate.id
+                for subordinate in employee.subordinates
+            ]
+            subordinate_ids.append(employee.id)
+
+            requests = VacationRequest.query.filter(
+                VacationRequest.employee_id.in_(
+                    subordinate_ids
+                )
+            ).all()
+
+    else:
+        requests = (
+            employee.vacation_requests
+            if employee is not None
+            else []
+        )
+
+    return render_template(
+        "account/requests.html",
+        user=user,
+        employee=employee,
+        requests=requests,
+    )
+
+
+@account_bp.route("/courses")
+@login_required
+def courses_page():
+    return render_template(
+        "account/courses.html",
+        user=g.current_user,
+    )
+
+
+@account_bp.route("/team")
+@role_required("manager", "hr")
+def team_page():
+    user = g.current_user
+    employee = user.employee
+
+    if user.role.name == "hr":
+        from app.models import Employee
+        employees = Employee.query.all()
+    else:
+        employees = (
+            employee.subordinates
+            if employee is not None
+            else []
+        )
+
+    return render_template(
+        "account/team.html",
+        user=user,
+        employees=employees,
+    )
+
+
+@account_bp.route("/password", methods=["POST"])
+@login_required
+def change_password():
+    user = g.current_user
+
+    current_password = request.form.get(
+        "current_password", ""
+    )
+    new_password = request.form.get(
+        "new_password", ""
+    )
+    confirm_password = request.form.get(
+        "confirm_password", ""
+    )
+
+    if not AccountService.verify_password(
+        user, current_password
+    ):
+        flash("Текущий пароль неверный.", "danger")
+
+    elif len(new_password) < 8:
+        flash(
+            "Пароль должен содержать минимум 8 символов.",
+            "danger",
+        )
+
+    elif new_password != confirm_password:
+        flash("Пароли не совпадают.", "danger")
+
+    else:
+        AccountService.change_password(
+            user, new_password
+        )
+        flash("Пароль успешно изменён.", "success")
+
+    return redirect(url_for("users.profile"))
 
 
 @account_bp.route("/register", methods=["GET", "POST"])
+@role_required("hr")
 def register():
+    # Создавать учётные записи может только HR.
+    # По умолчанию новому пользователю назначается роль employee.
     if request.method == "GET":
         return render_template("account/register.html")
 
     username = request.form.get("username")
     password = request.form.get("password")
 
-    data, errors = validate_register_form(username, password)
+    data, errors = validate_register_form(
+        username, password
+    )
 
     if errors:
         return render_template(
@@ -79,28 +214,43 @@ def register():
             username=username or "",
         ), 400
 
+    employee_role = Role.query.filter_by(
+        name="employee"
+    ).first()
+
+    if employee_role is None:
+        return render_template(
+            "account/register.html",
+            errors={
+                "general": "Роль сотрудника не создана."
+            },
+            username=data["username"],
+        ), 503
+
     try:
         user = AccountService.register_user(
-            data["username"],
-            data["password"],
+            username=data["username"],
+            password=data["password"],
+            role_id=employee_role.id,
         )
     except Exception:
-        # Откатываем транзакцию, если произошла ошибка БД.
-        from app.extensions import db
         db.session.rollback()
         raise
 
     if user is None:
         return render_template(
             "account/register.html",
-            errors={"general": "Этот логин уже занят."},
+            errors={
+                "general": "Этот логин уже занят."
+            },
             username=data["username"],
         ), 409
 
+    flash("Аккаунт создан. Войдите в систему.", "success")
     return redirect(url_for("users.login"))
+
 
 @account_bp.route("/logout", methods=["POST"])
 def logout():
     session.clear()
-
     return redirect(url_for("users.login"))
