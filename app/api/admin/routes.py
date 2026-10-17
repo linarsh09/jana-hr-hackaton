@@ -1,10 +1,10 @@
 from datetime import date
 
-from flask import Blueprint, render_template, request, session, redirect, url_for, flash
+from flask import Blueprint, render_template, request, session, redirect, url_for, flash, abort, g
 from app.models import Role, Employee, User, Department
 from app.extensions import db
 from app.api.employee.service import EmployeeService
-from app.core.permissions import login_required, role_required
+from app.core.permissions import can_manage_employee, login_required, role_required
 
 
 admin_bp = Blueprint(
@@ -26,7 +26,7 @@ POSITION_OPTIONS = (
 
 @admin_bp.route("/employees")
 @login_required
-@role_required("manager", "hr")
+@role_required("hr")
 def employees():
     employees = EmployeeService.get_all_employees()
 
@@ -36,6 +36,7 @@ def employees():
     )
 
 @admin_bp.route("/employees/create", methods=["GET", "POST"])
+@login_required
 @role_required("hr")
 def create_employee():
 
@@ -66,6 +67,7 @@ def create_employee():
 
 
 @admin_bp.route("/employees/card/create", methods=["GET", "POST"])
+@login_required
 @role_required("hr")
 def create_employee_card():
     departments = Department.query.order_by(Department.name).all()
@@ -120,7 +122,7 @@ def create_employee_card():
 
 @admin_bp.route("/employees/link", methods=["GET", "POST"])
 @login_required
-@role_required("manager", "hr")
+@role_required("hr")
 def link_employee_account():
     if request.method == "POST":
         user = db.session.get(User, request.form.get("user_id", type=int))
@@ -136,7 +138,7 @@ def link_employee_account():
             flash("Сотрудник не может быть руководителем самому себе.", "danger")
         elif manager and manager.manager_id == employee.id:
             flash("Нельзя назначить подчинённого руководителем его руководителя.", "danger")
-        elif manager and (manager.user is None or manager.user.role != "manager"):
+        elif manager and (manager.user is None or manager.user.role.value != "manager"):
             flash("У выбранного руководителя должна быть связанная учётная запись с ролью руководителя.", "danger")
         else:
             employee.user = user
@@ -151,19 +153,183 @@ def link_employee_account():
         "admin/employees/link.html",
         users=users,
         employees=employees,
-        managers=[employee for employee in employees if employee.user and employee.user.role == "manager"],
+        managers=[
+            employee for employee in employees
+            if employee.user and employee.user.role.value == "manager"
+        ],
     )
 
 
-@admin_bp.route("/employees/edit/<int:employee_id>", methods=["GET", "PUT"])
+@admin_bp.route("/employees/edit/<int:employee_id>", methods=["GET", "POST"])
 @login_required
-@role_required("manager", "hr")
-def edit_employee():
-    ...
+@role_required("hr", "manager")
+def edit_employee(employee_id: int):
+    user = db.session.get(User, employee_id)
+    if user is None:
+        abort(404)
+
+    employee = user.employee
+    is_manager = g.current_user.role.value == "manager"
+    if is_manager and (employee is None or not can_manage_employee(employee)):
+        abort(403)
+
+    if is_manager:
+        if request.method == "POST":
+            first_name = request.form.get("first_name", "").strip()
+            last_name = request.form.get("last_name", "").strip()
+            email = request.form.get("email", "").strip().lower()
+            position = request.form.get("position", "").strip()
+            department_id = request.form.get("department_id", type=int)
+            try:
+                if not all((first_name, last_name, email, position, department_id)):
+                    raise ValueError("Заполните все обязательные поля.")
+                if len(position) > 150:
+                    raise ValueError("Название должности не должно превышать 150 символов.")
+                duplicate_email = Employee.query.filter(
+                    Employee.email == email,
+                    Employee.id != employee.id,
+                ).first()
+                if duplicate_email is not None:
+                    raise ValueError("Карточка с таким email уже существует.")
+                department = db.session.get(Department, department_id)
+                if department is None:
+                    raise ValueError("Выберите существующее подразделение.")
+
+                employee.first_name = first_name
+                employee.last_name = last_name
+                employee.email = email
+                employee.position = position
+                employee.department = department
+                employee.company = request.form.get("company", "").strip() or None
+                db.session.commit()
+                flash("Данные сотрудника сохранены.", "success")
+                return redirect(url_for("users.team_page"))
+            except ValueError as error:
+                db.session.rollback()
+                flash(str(error), "danger")
+                user = db.session.get(User, employee_id)
+                employee = user.employee if user else None
+
+        return render_template(
+            "account/team_edit.html",
+            user=user,
+            employee=employee,
+            departments=Department.query.order_by(Department.name).all(),
+        )
+
+    departments = Department.query.order_by(Department.name).all()
+
+    if request.method == "POST":
+        username = request.form.get("username", "").strip()
+        try:
+            if not username:
+                raise ValueError("Введите имя пользователя.")
+            if len(username) > 100:
+                raise ValueError("Имя пользователя не должно превышать 100 символов.")
+            duplicate_user = User.query.filter(
+                User.username == username,
+                User.id != user.id,
+            ).first()
+            if duplicate_user is not None:
+                raise ValueError("Пользователь с таким именем уже существует.")
+
+            user.username = username
+            user.is_active = request.form.get("is_active") == "1"
+
+            # HR may switch ordinary employee/manager accounts, but cannot
+            # grant or remove HR/admin privileges from this form.
+            if user.role.value in ("hr", "manager"):
+                try:
+                    role = Role(request.form.get("role", ""))
+                except ValueError:
+                    raise ValueError("Выберите допустимую роль.")
+                if role.value not in ("hr", "manager"):
+                    raise ValueError("Здесь можно назначить только сотрудника или руководителя.")
+                user.role = role
+
+            if employee is not None:
+                first_name = request.form.get("first_name", "").strip()
+                last_name = request.form.get("last_name", "").strip()
+                email = request.form.get("email", "").strip().lower()
+                position_choice = request.form.get("position", "").strip()
+                other_position = request.form.get("other_position", "").strip()
+                position = other_position if position_choice == "other" else position_choice
+                company = request.form.get("company", "").strip() or None
+                department_id = request.form.get("department_id", type=int)
+                hire_date_value = request.form.get("hire_date", "").strip()
+                vacation_days_value = request.form.get("vacation_days", "").strip()
+
+                if not all((first_name, last_name, email, position, department_id, hire_date_value, vacation_days_value)):
+                    raise ValueError("Заполните все обязательные поля карточки сотрудника.")
+                if position_choice != "other" and position_choice not in dict(POSITION_OPTIONS) and position_choice != employee.position:
+                    raise ValueError("Выберите должность из списка.")
+                if len(position) > 150:
+                    raise ValueError("Название должности не должно превышать 150 символов.")
+                duplicate_email = Employee.query.filter(
+                    Employee.email == email,
+                    Employee.id != employee.id,
+                ).first()
+                if duplicate_email is not None:
+                    raise ValueError("Карточка с таким email уже существует.")
+
+                department = db.session.get(Department, department_id)
+                if department is None:
+                    raise ValueError("Выберите существующее подразделение.")
+                try:
+                    hire_date = date.fromisoformat(hire_date_value)
+                    vacation_days = int(vacation_days_value)
+                except ValueError:
+                    raise ValueError("Проверьте дату приёма и количество дней отпуска.")
+                if vacation_days < 0:
+                    raise ValueError("Дни отпуска не могут быть отрицательными.")
+
+                employee.first_name = first_name
+                employee.last_name = last_name
+                employee.email = email
+                employee.position = position
+                employee.company = company
+                employee.department = department
+                employee.hire_date = hire_date
+                employee.vacation_days = vacation_days
+
+            db.session.commit()
+            flash("Данные сохранены.", "success")
+            return redirect(url_for("admin.employees"))
+        except ValueError as error:
+            db.session.rollback()
+            flash(str(error), "danger")
+            user = db.session.get(User, employee_id)
+            employee = user.employee if user else None
+
+    return render_template(
+        "admin/employees/edit.html",
+        user=user,
+        employee=employee,
+        departments=departments,
+        position_options=POSITION_OPTIONS,
+        position_values=[value for value, _ in POSITION_OPTIONS],
+    )
 
 
-@admin_bp.route("/employees/delete/<int:employee_id>", methods=["DELETE"])
+@admin_bp.route("/employees/delete/<int:employee_id>", methods=["POST"])
 @login_required
-@role_required("manager", "hr")
-def delete_employee():
-    ...
+@role_required("hr")
+def delete_employee(employee_id: int):
+    user = db.session.get(User, employee_id)
+    if user is None:
+        abort(404)
+
+    if user.id == session.get("user_id"):
+        flash("Нельзя удалить собственную учётную запись.", "danger")
+        return redirect(url_for("admin.employees"))
+
+    # Учётную запись удаляем, кадровую карточку сохраняем для HR,
+    # но отвязываем от руководителя, чтобы удалённый сотрудник не оставался в его списке.
+    if user.employee is not None:
+        user.employee.user = None
+        user.employee.manager = None
+
+    db.session.delete(user)
+    db.session.commit()
+    flash("Учётная запись удалена. Кадровая карточка сохранена и отвязана от руководителя.", "success")
+    return redirect(url_for("admin.employees"))
