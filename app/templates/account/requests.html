@@ -6,7 +6,7 @@
 {% block content %}
 <div class="row g-4">
     <div class="col-12">
-        <h1 class="h3 mb-1">Заявки</h1>
+        <div class="jana-eyebrow mb-2">Рабочие вопросы без лишних шагов</div><h1 class="h3 mb-1">Заявки</h1>
         {% if user.role.value == 'employee' %}
         <p class="text-secondary">Подайте заявку и следите за её статусом.</p>
         {% elif user.role.value == 'manager' %}
@@ -47,7 +47,7 @@
                         <label class="form-label" for="comment">Описание / комментарий</label>
                         <textarea class="form-control" id="comment" name="comment" rows="3" maxlength="2000"></textarea>
                     </div>
-                    <button class="btn btn-primary" type="button" disabled>Отправка будет подключена позже</button>
+                    <button class="btn btn-primary" type="button" disabled>Отправка скоро появится</button>
                 </form>
             </div>
         </section>
@@ -62,7 +62,7 @@
                         <thead class="table-light"><tr><th class="ps-4">Вид</th><th>Период</th><th>Дни</th><th>Статус</th><th>Описание</th></tr></thead>
                         <tbody>
                         <!-- TODO: Подключить список заявок и статусы из реализации коллеги. -->
-                        <tr><td colspan="5" class="text-center text-secondary py-5">Здесь будут отображаться ваши заявки.</td></tr>
+                        <tr><td colspan="5" class="text-center text-secondary py-5">Пока нет заявок. Здесь появятся обращения и их статусы.</td></tr>
                         </tbody>
                     </table>
                 </div>
@@ -81,7 +81,7 @@
                 <p class="text-secondary">Здесь будут отображаться заявки всех сотрудников.</p>
                 <!-- TODO: Подключить общий список заявок и действия рассмотрения для HR. -->
                 {% endif %}
-                <div class="text-center text-secondary py-4">Список заявок пока не подключён.</div>
+                <div class="text-center text-secondary py-4">Раздел готовится к запуску. Заявки появятся здесь после подключения.</div>
             </div>
         </section>
     </div>

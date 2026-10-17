@@ -244,3 +244,6 @@ __marimo__/
 .streamlit/secrets.toml
 
 /frontend
+
+# Local demo databases, session keys and temporary files
+/work/

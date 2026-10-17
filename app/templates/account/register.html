@@ -1,27 +1,5 @@
-{% extends "_layout.html" %}
-
-{% block content %}
-    {% if errors %}
-        {% if errors %}
-            <div class="alert alert-danger">
-                {{ errors }}
-            </div>
-        {% endif %}
-    {% endif %}
-
-    {% if success %}
-        <div class="alert alert-success">
-            {{ success }}
-        </div>
-    {% endif %}
-
-    <div class="col-4 bg-white border rounded-3 p-5 shadow-lg">
-        <h3 class="text-center mb-3">Регистрация</h3>
-        <p class="text-secondary small">Самостоятельная регистрация создаёт учётную запись работника. Учётные записи руководителей и HR создаются через панель HR.</p>
-        <form class="" method="POST" action="/account/register">
-            <input type="text" class="border border-primary form-control mb-3" placeholder="Ваш логин" name="username" />
-            <input type="password" class="border border-primary form-control mb-3" placeholder="Ваш пароль" name="password" />
-            <input type="submit" class="btn btn-primary w-100" value="Зарегистрироваться" />
-        </form>
-    </div>
-{% endblock %}
+{% extends '_layout.html' %}{% block title %}Регистрация{% endblock %}
+{% block content %}<div class="jana-eyebrow">Первый шаг в JanaMen</div><h1>Добро пожаловать</h1><p class="text-secondary">Создай учётную запись сотрудника. HR поможет связать её с твоей кадровой карточкой.</p>
+{% if errors %}<div class="alert alert-danger" role="alert">{% for field,message in errors.items() %}<div>{{ message }}</div>{% endfor %}</div>{% endif %}
+{% if success %}<div class="alert alert-success" role="status">{{ success }}</div>{% endif %}
+<form method="post" action="{{ url_for('users.register') }}"><div class="mb-3"><label for="username" class="form-label">Логин</label><input id="username" name="username" class="form-control" value="{{ username|default('') }}" required autocomplete="username"></div><div class="mb-4"><label for="password" class="form-label">Пароль</label><input id="password" name="password" class="form-control" type="password" required autocomplete="new-password"></div><button class="btn btn-primary w-100" type="submit">Создать учётную запись →</button></form><p class="jana-auth-help">Уже есть учётная запись? <a href="{{ url_for('users.login') }}">Войти</a></p>{% endblock %}

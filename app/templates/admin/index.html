@@ -10,20 +10,20 @@
 </div>
 <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
     <div>
-        <h1 class="h3 mb-1">Сотрудники</h1>
+        <div class="jana-eyebrow mb-2">Люди — главное</div><h1 class="h3 mb-1">Сотрудники</h1>
         <p class="text-secondary mb-0">
-            Управление сотрудниками системы.
+            Учётные записи, кадровые карточки и связи в команде.
         </p>
     </div>
 
-    <div class="d-flex align-items-center gap-2">
+    <div class="d-flex flex-wrap align-items-center gap-2">
         <span class="badge text-bg-secondary fs-6">
             Всего: {{ employees | length }}
         </span>
 
         <a href="{{ url_for('admin.create_employee') }}"
         class="btn btn-primary">
-            <i class="bi bi-person-plus"></i>
+            <span aria-hidden="true">＋</span>
             Добавить сотрудника
         </a>
         <a href="{{ url_for('admin.create_employee_card') }}" class="btn btn-outline-primary">
@@ -74,39 +74,23 @@
                                 else employee.role %}
 
                             <span class="badge
-                                {% if role == 'ADMIN' %}
+                                {% if role|lower == 'admin' %}
                                     text-bg-danger
-                                {% elif role == 'HR' %}
+                                {% elif role|lower == 'hr' %}
                                     text-bg-primary
                                 {% else %}
                                     text-bg-secondary
                                 {% endif %}">
-                                {{ role }}
+                                {{ {'admin':'Администратор','hr':'HR','manager':'Руководитель','employee':'Сотрудник'}.get(role|lower, role) }}
                             </span>
                         </td>
                         <td class="text-end pe-4">
-                            <a href="{{ url_for('admin.edit_employee', employee_id=employee.id) }}"
-                            class="btn btn-sm btn-outline-primary"
-                            title="Редактировать">
-                                <i class="fa-solid fa-pen-to-square"></i>
-                            </a>
-
-                            <form method="POST"
-                                action="{{ url_for('admin.delete_employee', employee_id=employee.id) }}"
-                                class="d-inline"
-                                onsubmit="return confirm('Удалить сотрудника?');">
-
-                                <button type="submit"
-                                        class="btn btn-sm btn-outline-danger"
-                                        title="Удалить">
-                                    <i class="fa-solid fa-trash"></i>
-                                </button>
-                            </form>
+                            <span class="text-secondary small">Редактирование скоро появится</span>
                         </td>
                     </tr>
                     {% else %}
                     <tr>
-                        <td colspan="4" class="text-center py-5">
+                        <td colspan="5" class="text-center py-5">
                             <div class="text-secondary mb-2">
                                 <strong>Сотрудники не найдены</strong>
                             </div>

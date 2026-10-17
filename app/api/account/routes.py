@@ -78,7 +78,7 @@ def requests_page():
 @account_bp.route("/courses", methods=["GET"])
 @login_required
 def courses_page():
-    return render_template("account/courses.html", user=g.current_user)
+    return redirect(url_for("academy_pages.catalog"))
 
 
 @account_bp.route("/team", methods=["GET"])

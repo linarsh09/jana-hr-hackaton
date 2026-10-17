@@ -39,11 +39,14 @@ def create_app():
     # ВАЖНО: импортируем модели,
     # чтобы Alembic их увидел
     from app import models
+    from app.api.academy import models as academy_models
 
     from app.api.employee.routes import employees_bp
     from app.api.vacations.routes import vacations_bp
     from app.api.account.routes import account_bp
     from app.api.admin.routes import admin_bp
+    from app.api.academy.routes import academy_bp
+    from app.api.academy.pages import academy_pages
 
     app.before_request(load_current_user)
 
@@ -51,5 +54,7 @@ def create_app():
     app.register_blueprint(vacations_bp)
     app.register_blueprint(account_bp)
     app.register_blueprint(admin_bp)
+    app.register_blueprint(academy_bp)
+    app.register_blueprint(academy_pages)
 
     return app

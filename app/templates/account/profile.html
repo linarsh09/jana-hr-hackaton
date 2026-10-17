@@ -1,45 +1,13 @@
 {% extends "account_layout.html" %}
 {% set active_page = 'profile' %}
-{% block title %}Профиль{% endblock %}
-{% block page_title %}Личный кабинет · Профиль{% endblock %}
-
+{% block title %}Мой профиль{% endblock %}
+{% block page_title %}Мой профиль{% endblock %}
 {% block content %}
-<div class="row g-4">
-    <div class="col-12">
-        <h1 class="h3 mb-1">Мой профиль</h1>
-        <p class="text-secondary">Личные и кадровые данные</p>
-    </div>
-
-    <div class="col-12 col-xl-7">
-        <section class="card border-0 shadow-sm h-100">
-            <div class="card-body p-4">
-                <h2 class="h5 mb-4">Данные сотрудника</h2>
-                {% if employee %}
-                <dl class="row mb-0">
-                    <dt class="col-sm-5 text-secondary">Ф.И.О.</dt><dd class="col-sm-7">{{ employee.full_name }}</dd>
-                    <dt class="col-sm-5 text-secondary">Компания</dt><dd class="col-sm-7">{{ employee.company or 'Не указана' }}</dd>
-                    <dt class="col-sm-5 text-secondary">Должность</dt><dd class="col-sm-7">{{ employee.position }}</dd>
-                    <dt class="col-sm-5 text-secondary">Подразделение</dt><dd class="col-sm-7">{{ employee.department.name }}</dd>
-                    <dt class="col-sm-5 text-secondary">Руководитель</dt><dd class="col-sm-7">{{ employee.manager.full_name if employee.manager else 'Не назначен' }}</dd>
-                    <dt class="col-sm-5 text-secondary">Дата приёма</dt><dd class="col-sm-7">{{ employee.hire_date.strftime('%d.%m.%Y') }}</dd>
-                    <dt class="col-sm-5 text-secondary">Остаток отпуска</dt><dd class="col-sm-7">{{ available_days }} дн. из {{ employee.vacation_days }}</dd>
-                </dl>
-                {% else %}
-                <div class="alert alert-info mb-0">К учётной записи пока не привязана кадровая карточка. Для регистрации это ожидаемо; HR сможет связать её позднее.</div>
-                {% endif %}
-            </div>
-        </section>
-    </div>
-
-    <div class="col-12 col-xl-5">
-        <section class="card border-0 shadow-sm">
-            <div class="card-body p-4">
-                <h2 class="h5">Уведомления</h2>
-                <p class="text-secondary mb-0">Уведомлений пока нет.</p>
-            </div>
-        </section>
-    </div>
-
+<section class="jana-hero jana-profile-hero"><div><div class="jana-eyebrow">Хороший день начинается здесь</div><h1 class="jana-heading">Привет, {{ employee.first_name if employee else user.username }}!</h1><p class="mb-3">Твои данные, обучение и рабочие вопросы — всё под рукой.</p><a class="btn btn-primary" href="{{ url_for('users.courses_page') }}">{{ 'Обучение команды' if user.role.value in ['manager','hr','admin'] else 'Моё обучение' }} →</a></div><div class="jana-person-symbol" aria-hidden="true">{{ employee.first_name[0] if employee else user.username[0]|upper }}.</div></section>
+<div class="jana-stat-grid"><div class="jana-stat"><span class="stat-caption">Твоя роль</span><strong>{{ {'employee':'Сотрудник','manager':'Руководитель','hr':'HR-специалист','admin':'Администратор'}[user.role.value] }}</strong><small>В команде JanaMen</small></div><div class="jana-stat"><span class="stat-caption">Подразделение</span><strong>{{ employee.department.name if employee and employee.department else 'Не указано' }}</strong><small>{{ employee.position if employee else 'Карточка ещё не привязана' }}</small></div><div class="jana-stat"><span class="stat-caption">Остаток отпуска</span><strong>{{ available_days if available_days is not none else '—' }} дней</strong><small>{{ 'Из ' ~ employee.vacation_days ~ ' дней в году' if employee else 'Данные появятся после привязки' }}</small></div></div>
+<div class="row g-4"><div class="col-12 col-xl-8"><section class="card h-100"><div class="card-body p-4"><div class="d-flex justify-content-between gap-2 align-items-center mb-3"><h2 class="h5 mb-0">Личная информация</h2><span class="jana-role-label">Профиль сотрудника</span></div>
+{% if employee %}<dl class="row jana-details mb-0"><dt class="col-sm-4">Фамилия и имя</dt><dd class="col-sm-8">{{ employee.full_name }}</dd><dt class="col-sm-4">Рабочая почта</dt><dd class="col-sm-8">{{ employee.email }}</dd><dt class="col-sm-4">Компания</dt><dd class="col-sm-8">{{ employee.company or 'Не указана' }}</dd><dt class="col-sm-4">Должность</dt><dd class="col-sm-8">{{ employee.position }}</dd><dt class="col-sm-4">Подразделение</dt><dd class="col-sm-8">{{ employee.department.name if employee.department else 'Не указано' }}</dd><dt class="col-sm-4">Руководитель</dt><dd class="col-sm-8">{{ employee.manager.full_name if employee.manager else 'Не назначен' }}</dd><dt class="col-sm-4">Дата приёма</dt><dd class="col-sm-8">{{ employee.hire_date.strftime('%d.%m.%Y') }}</dd></dl><p class="form-text mt-3 mb-0">Если данные изменились, обратись к HR — он поможет обновить карточку.</p>{% else %}<div class="jana-empty"><span class="jana-empty-symbol" aria-hidden="true">◉</span><strong>Давай познакомимся ближе</strong><p class="mb-0 mt-2">HR ещё не связал твою учётную запись с карточкой сотрудника. После привязки здесь появятся рабочие данные.</p></div>{% endif %}</div></section></div>
+<div class="col-12 col-xl-4"><section class="card mb-4"><div class="card-body p-4"><h2 class="h5 mb-2">Быстрый доступ</h2><a class="jana-shortcut" href="{{ url_for('users.courses_page') }}"><div><strong>Jana Academy</strong><small>Курсы, знания и результаты</small></div><span class="arrow">↗</span></a><a class="jana-shortcut" href="{{ url_for('users.requests_page') }}"><div><strong>Заявки</strong><small>Кадровые обращения</small></div><span class="arrow">↗</span></a>{% if user.role.value in ['hr','admin'] %}<a class="jana-shortcut" href="{{ url_for('admin.employees') }}"><div><strong>Сотрудники</strong><small>Учётные записи и карточки</small></div><span class="arrow">↗</span></a>{% elif user.role.value == 'manager' %}<a class="jana-shortcut" href="{{ url_for('users.team_page') }}"><div><strong>Моя команда</strong><small>Твои сотрудники</small></div><span class="arrow">↗</span></a>{% endif %}</div></section><section class="card"><div class="card-body p-4"><h2 class="h5">Уведомления</h2><div class="jana-empty"><span class="jana-empty-symbol" aria-hidden="true">✓</span><strong>Пока ничего нового</strong><p class="mb-0 mt-1 small">Здесь появятся важные обновления.</p></div></div></section></div>
     {% if user.role.value in ['manager', 'hr', 'admin'] %}
     <div class="col-12">
         <section class="card border-0 shadow-sm">
@@ -64,5 +32,6 @@
         </section>
     </div>
     {% endif %}
+
 </div>
 {% endblock %}
