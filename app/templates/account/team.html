@@ -28,7 +28,7 @@
                             {% for employee in employees %}
                             <tr>
                                 <td class="ps-4 fw-semibold">{{ employee.full_name }}</td>
-                                <td>{{ employee.position }}</td>
+                                <td>{{ employee.position.name if employee.position else '—' }}</td>
                                 <td>{{ employee.department.name if employee.department else '—' }}</td>
                                 <td>{{ employee.email }}</td>
                                 <td class="pe-4 text-end"><a class="btn btn-sm btn-outline-primary" href="{{ url_for('admin.edit_employee', employee_id=employee.user.id) }}">Изменить</a></td>

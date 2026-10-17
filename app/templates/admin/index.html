@@ -1,3 +1,4 @@
+```html
 {% extends "admin_layout.html" %}
 {% set active_page = 'employees' %}
 
@@ -5,12 +6,14 @@
 {% block page_title %}Сотрудники{% endblock %}
 
 {% block content %}
-<<<<<<< HEAD
-=======
+
 <div class="mb-3">
-    <a href="{{ url_for('users.profile') }}" class="text-decoration-none text-secondary">← В личный кабинет</a>
+    <a href="{{ url_for('users.profile') }}"
+       class="text-decoration-none text-secondary">
+        ← В личный кабинет
+    </a>
 </div>
->>>>>>> 5f29f7dfd66bb823cea8250e252172c4414bd317
+
 <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
     <div>
         <h1 class="h3 mb-1">Сотрудники</h1>
@@ -19,25 +22,26 @@
         </p>
     </div>
 
-    <div class="d-flex align-items-center gap-2">
+    <div class="d-flex flex-wrap align-items-center gap-2">
         <span class="badge text-bg-secondary fs-6">
             Всего: {{ employees | length }}
         </span>
 
         <a href="{{ url_for('admin.create_employee') }}"
-        class="btn btn-primary">
+           class="btn btn-primary">
             <i class="bi bi-person-plus"></i>
             Добавить сотрудника
         </a>
-<<<<<<< HEAD
-=======
-        <a href="{{ url_for('admin.create_employee_card') }}" class="btn btn-outline-primary">
+
+        <a href="{{ url_for('admin.create_employee_card') }}"
+           class="btn btn-outline-primary">
             Создать карточку
         </a>
-        <a href="{{ url_for('admin.link_employee_account') }}" class="btn btn-outline-primary">
+
+        <a href="{{ url_for('admin.link_employee_account') }}"
+           class="btn btn-outline-primary">
             Связать учётку
         </a>
->>>>>>> 5f29f7dfd66bb823cea8250e252172c4414bd317
     </div>
 </div>
 
@@ -71,56 +75,71 @@
                         </td>
 
                         <td>
-<<<<<<< HEAD
-                            {{ employee.email or 'Не указан' }}
-=======
-                            {{ employee.employee.email if employee.employee else 'Не указан' }}
->>>>>>> 5f29f7dfd66bb823cea8250e252172c4414bd317
+                            {% if employee.employee %}
+                                {{ employee.employee.email or 'Не указан' }}
+                            {% else %}
+                                Не указана карточка
+                            {% endif %}
                         </td>
 
                         <td>
-                            {% set role = employee.role.value
-                                if employee.role.value is defined
-                                else employee.role %}
+                            {% set role = employee.role.name if employee.role else '' %}
+                            {% set role_lower = role | lower %}
 
                             <span class="badge
-<<<<<<< HEAD
-                                {% if role == 'ADMIN' %}
+                                {% if role_lower == 'admin' %}
                                     text-bg-danger
-                                {% elif role == 'HR' %}
-=======
-                                {% if role|lower == 'hr' %}
->>>>>>> 5f29f7dfd66bb823cea8250e252172c4414bd317
+                                {% elif role_lower == 'hr' %}
                                     text-bg-primary
-                                {% else %}
+                                {% elif role_lower == 'manager' %}
+                                    text-bg-success
+                                {% elif role_lower == 'employee' %}
                                     text-bg-secondary
+                                {% else %}
+                                    text-bg-dark
                                 {% endif %}">
-                                {{ role }}
+                                {{ role or 'Не назначена' }}
                             </span>
                         </td>
+
                         <td class="text-end pe-4">
-                            <a href="{{ url_for('admin.edit_employee', employee_id=employee.id) }}"
-                            class="btn btn-sm btn-outline-primary"
-                            title="Редактировать">
-                                <i class="fa-solid fa-pen-to-square"></i>
-                            </a>
+                            {% if employee.employee %}
+                                <a href="{{ url_for(
+                                    'admin.edit_employee',
+                                    employee_id=employee.employee.id
+                                ) }}"
+                                   class="btn btn-sm btn-outline-primary"
+                                   title="Редактировать карточку">
+                                    <i class="fa-solid fa-pen-to-square"></i>
+                                </a>
+                            {% endif %}
 
                             <form method="POST"
-                                action="{{ url_for('admin.delete_employee', employee_id=employee.id) }}"
-                                class="d-inline"
-                                onsubmit="return confirm('Удалить сотрудника?');">
+                                  action="{{ url_for(
+                                      'admin.delete_employee',
+                                      employee_id=employee.id
+                                  ) }}"
+                                  class="d-inline"
+                                  onsubmit="return confirm('Удалить сотрудника?');">
+
+                                {% if csrf_token is defined %}
+                                    <input type="hidden"
+                                           name="csrf_token"
+                                           value="{{ csrf_token() }}">
+                                {% endif %}
 
                                 <button type="submit"
                                         class="btn btn-sm btn-outline-danger"
-                                        title="Удалить">
+                                        title="Удалить учётную запись">
                                     <i class="fa-solid fa-trash"></i>
                                 </button>
                             </form>
                         </td>
                     </tr>
+
                     {% else %}
                     <tr>
-                        <td colspan="4" class="text-center py-5">
+                        <td colspan="5" class="text-center py-5">
                             <div class="text-secondary mb-2">
                                 <strong>Сотрудники не найдены</strong>
                             </div>
@@ -141,4 +160,6 @@
         </small>
     </div>
 </div>
+
 {% endblock %}
+```

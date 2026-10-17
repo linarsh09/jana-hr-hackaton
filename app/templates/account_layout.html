@@ -15,20 +15,20 @@
         <div class="jana-nav-label">ЛИЧНЫЙ КАБИНЕТ</div>
         <nav class="jana-nav" aria-label="Личный кабинет">
             <a class="jana-nav-item {{ 'is-active' if active_page == 'profile' else '' }}" href="{{ url_for('users.profile') }}"><span class="jana-nav-icon">⌂</span>Профиль</a>
-            {% if g.current_user.role.value in ['employee', 'manager', 'hr'] %}
+            {% if g.current_user.role.name in ['employee', 'manager', 'hr'] %}
                 <a class="jana-nav-item {{ 'is-active' if active_page == 'requests' else '' }}" href="{{ url_for('users.requests_page') }}"><span class="jana-nav-icon">▤</span>Заявки</a>
             {% endif %}
             <a class="jana-nav-item {{ 'is-active' if active_page == 'courses' else '' }}" href="{{ url_for('users.courses_page') }}"><span class="jana-nav-icon">◇</span>Курсы</a>
-            {% if g.current_user.role.value == 'manager' %}
+            {% if g.current_user.role.name == 'manager' %}
                 <a class="jana-nav-item {{ 'is-active' if active_page == 'team' else '' }}" href="{{ url_for('users.team_page') }}"><span class="jana-nav-icon">♧</span>Мои сотрудники</a>
             {% endif %}
-            {% if g.current_user.role.value == 'hr' %}
+            {% if g.current_user.role.name == 'hr' %}
                 <a class="jana-nav-item {{ 'is-active' if active_page == 'employees' else '' }}" href="{{ url_for('admin.employees') }}"><span class="jana-nav-icon">♧</span>Сотрудники</a>
             {% endif %}
         </nav>
         <div class="jana-account">
             <span class="jana-avatar">{{ g.current_user.username[:1]|upper }}</span>
-            <div><strong>{{ g.current_user.username }}</strong><small>{{ g.current_user.role.value }}</small></div>
+            <div><strong>{{ g.current_user.username }}</strong><small>{{ g.current_user.role.name if g.current_user.role else '—' }}</small></div>
             <form method="post" action="{{ url_for('users.logout') }}">
                 <button type="submit" class="jana-logout">Выйти</button>
             </form>
