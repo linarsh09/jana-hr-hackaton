@@ -1,5 +1,4 @@
 from flask import Blueprint, render_template, request, session, redirect, url_for
-from app.models import UserRole
 from .service import AccountService
 from .validators import validate_login_form, validate_register_form
 from app.core.permissions import login_required, role_required
@@ -52,12 +51,11 @@ def login():
 
 @account_bp.route("/profile", methods=["GET"])
 @login_required
-@role_required(UserRole.ADMIN, UserRole.HR)
 def profile():
     user_id = session.get("user_id")
 
     if user_id is None:
-        return redirect(url_for("account.login"))
+        return redirect(url_for("users.login"))
 
     return render_template("admin/index.html")
 

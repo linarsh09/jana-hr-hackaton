@@ -1,6 +1,8 @@
+
 from functools import wraps
+
 from flask import g, redirect, url_for, abort
-from app.models import User, UserRole
+from app.models import User, Role
 from app.extensions import db
 
 
@@ -38,7 +40,8 @@ def login_required(view):
     return wrapped
 
 
-def role_required(*allowed_roles: UserRole):
+
+def role_required(*allowed_roles: str):
     """Требует авторизации и одну из указанных ролей."""
     @wraps(role_required)
     def decorator(view):
@@ -47,9 +50,11 @@ def role_required(*allowed_roles: UserRole):
             user = getattr(g, "current_user", None)
 
             if user is None:
-                return redirect(url_for("users.login"))
+                abort(401)
 
-            if user.role not in allowed_roles:
+            if user.role is None or user.role.name.lower() not in {
+                role.lower() for role in allowed_roles
+            }:
                 abort(403)
 
             return view(*args, **kwargs)

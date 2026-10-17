@@ -1,7 +1,7 @@
 from werkzeug.security import generate_password_hash
 
 from app.api.employees.repository import EmployeeRepository
-from app.models import User, UserRole
+from app.models import User, Role
 
 
 class EmployeeService:
@@ -59,7 +59,7 @@ class EmployeeService:
             raise ValueError("Пользователь с таким именем уже существует.")
 
         try:
-            role = UserRole(str.lower(role_value))
+            role = Role(str.lower(role_value))
         except (ValueError, TypeError):
             raise ValueError("Некорректная роль пользователя.")
 

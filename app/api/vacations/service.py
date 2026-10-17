@@ -1,7 +1,7 @@
 from datetime import date
 from app.api.vacations.repository import VacationRepository
 from app.api.employees.repository import EmployeeRepository
-from app.models import VacationRequest, VacationStatus
+from app.models import VacationRequest
 
 
 class VacationService:
@@ -11,7 +11,7 @@ class VacationService:
         employee_id: int,
         start_date: date,
         end_date: date,
-        comment: str | None = None,
+        comment: str| None,
     ):
         # Проверяем сотрудника
         employee = EmployeeRepository.get_by_id(employee_id)
@@ -35,11 +35,12 @@ class VacationService:
                 f"Available: {employee.vacation_days}"
             )
 
+
         vacation_request = VacationRequest(
             employee_id=employee_id,
             start_date=start_date,
             end_date=end_date,
-            status=VacationStatus.PENDING,
+            status="pending",
             comment=comment,
         )
 
