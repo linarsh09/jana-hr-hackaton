@@ -1,9 +1,3 @@
-<<<<<<< HEAD
-
-from datetime import date
-
-from werkzeug.security import generate_password_hash
-=======
 """Idempotent demo data for JanaMen. Run: python seeders.py
 Set JANAMEN_SEED_PASSWORD in the environment to create demo accounts.
 Existing users, including admin, are never modified.
@@ -11,7 +5,6 @@ Existing users, including admin, are never modified.
 import os
 from datetime import date, datetime, timezone
 from decimal import Decimal
->>>>>>> 553bcda9212b767a82e38879855e93435e63872d
 
 from app import create_app
 from app.extensions import db
@@ -205,9 +198,6 @@ def seed():
 
 
 if __name__ == "__main__":
-<<<<<<< HEAD
-    seed()
-=======
     app = create_app()
     with app.app_context():
         try:
@@ -215,4 +205,3 @@ if __name__ == "__main__":
         except Exception:
             db.session.rollback()
             raise
->>>>>>> 553bcda9212b767a82e38879855e93435e63872d

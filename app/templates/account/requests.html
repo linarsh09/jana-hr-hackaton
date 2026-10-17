@@ -1,108 +1,447 @@
+
 {% extends "account_layout.html" %}
 {% set active_page = 'requests' %}
 {% block title %}Заявки{% endblock %}
 {% block page_title %}Личный кабинет · Заявки{% endblock %}
 
 {% block content %}
+
 <div class="row g-4">
+
     <div class="col-12">
         <h1 class="h3 mb-1">Заявки</h1>
-        {% if user.role.name == 'employee' %}
-        <p class="text-secondary">Подайте заявку и следите за её статусом.</p>
-        {% elif user.role.name == 'manager' %}
-        <p class="text-secondary">Рассматривайте заявки сотрудников, закреплённых за вами.</p>
+
+        {% if user.role.name|lower == 'employee' %}
+            <p class="text-secondary">
+                Подайте заявку и следите за её статусом.
+            </p>
+        {% elif user.role.name|lower == 'manager' %}
+            <p class="text-secondary">
+                Рассматривайте заявки сотрудников, закреплённых за вами.
+            </p>
         {% else %}
-        <p class="text-secondary">Рассматривайте заявки сотрудников компании.</p>
+            <p class="text-secondary">
+                Рассматривайте заявки сотрудников компании.
+            </p>
         {% endif %}
     </div>
 
-    {% if user.role.name == 'employee' %}
+    {% if user.role.name|lower == 'employee' %}
+
+    <!-- ФОРМА СОЗДАНИЯ ЗАЯВКИ -->
+
     <div class="col-12 col-xl-5">
-        <section class="card border-0 shadow-sm">
+        <section class="card border-0 shadow-sm h-100">
+
             <div class="card-body p-4">
-                <div class="d-flex justify-content-between align-items-start gap-3 mb-3">
-                    <h2 class="h5 mb-0">Новая заявка</h2>
-                    <span class="badge text-bg-secondary">Остаток отпуска: —</span>
+
+                <div class="d-flex justify-content-between
+                            align-items-start flex-wrap gap-2 mb-4">
+
+                    <h2 class="h5 mb-0">
+                        Новая заявка
+                    </h2>
+
+                    <span class="badge text-bg-light rounded-pill px-3 py-2">
+                        Остаток отпуска:
+                        {{ available_days if available_days is not none else "—" }}
+                    </span>
+
                 </div>
-                <!-- INTEGRATION: app.api.requests подключает POST/валидацию для employee; HR и manager не должны отправлять заявки. -->
-                <form onsubmit="return false;">
-                    <div class="mb-3">
-                        <label class="form-label" for="request_type">Вид заявки</label>
-                        <select class="form-select" id="request_type" name="request_type" required>
-                            <option value="vacation">Отпуск</option>
-                            <option value="sick_leave">Больничный</option>
-                            <option value="certificate">Справка</option>
-                            <option value="other">Другое</option>
-                        </select>
+
+                <form method="POST"
+                      action="{{ url_for('users.requests_page') }}">
+
+                    <div class="mb-4">
+                        <h3 class="h6 fw-semibold mb-1">
+                            Заявка на отпуск
+                        </h3>
+
+                        <p class="text-secondary small mb-0">
+                            Укажите период отпуска и комментарий.
+                        </p>
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label" for="start_date">Дата начала</label>
-                        <input class="form-control" id="start_date" name="start_date" type="date" required>
+
+                    <!-- ДАТЫ ОТПУСКА -->
+
+                    <div class="row g-3 mb-3">
+
+                        <div class="col-12 col-md-6">
+                            <label for="start_date"
+                                   class="form-label fw-medium">
+                                Дата начала
+                            </label>
+
+                            <input
+                                type="date"
+                                id="start_date"
+                                name="start_date"
+                                class="form-control"
+                                required
+                            >
+                        </div>
+
+                        <div class="col-12 col-md-6">
+                            <label for="end_date"
+                                   class="form-label fw-medium">
+                                Дата окончания
+                            </label>
+
+                            <input
+                                type="date"
+                                id="end_date"
+                                name="end_date"
+                                class="form-control"
+                                required
+                            >
+                        </div>
+
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label" for="end_date">Дата окончания</label>
-                        <input class="form-control" id="end_date" name="end_date" type="date" required>
+
+                    <!-- КОММЕНТАРИЙ -->
+
+                    <div class="mb-4">
+                        <label for="comment"
+                               class="form-label fw-medium">
+                            Комментарий
+                        </label>
+
+                        <textarea
+                            id="comment"
+                            name="comment"
+                            class="form-control"
+                            rows="3"
+                            placeholder="Например: семейная поездка"
+                            style="resize: vertical;"
+                        ></textarea>
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label" for="comment">Описание / комментарий</label>
-                        <textarea class="form-control" id="comment" name="comment" rows="3" maxlength="2000"></textarea>
-                    </div>
-                    <button class="btn btn-primary" type="button" disabled>Отправка будет подключена позже</button>
+
+                    <!-- КНОПКА ОТПРАВКИ -->
+
+                    <button type="submit"
+                            class="btn btn-dark px-4 py-2 rounded-3">
+                        Отправить заявку
+                    </button>
+
                 </form>
+
             </div>
+
         </section>
     </div>
 
+    <!-- МОИ ЗАЯВКИ -->
+
     <div class="col-12 col-xl-7">
-        <section class="card border-0 shadow-sm">
+        <section class="card border-0 shadow-sm h-100">
+
             <div class="card-body p-0">
-                <div class="p-4 pb-3"><h2 class="h5 mb-0">Мои заявки</h2></div>
-                <div class="table-responsive">
-                    <table class="table align-middle mb-0">
-                        <thead class="table-light"><tr><th class="ps-4">Вид</th><th>Период</th><th>Дни</th><th>Статус</th><th>Описание</th></tr></thead>
-                        <tbody>
-                        <!-- INTEGRATION: app.api.requests передаёт сюда личные заявки employee и их статусы. -->
-                        <tr><td colspan="5" class="text-center text-secondary py-5">Здесь будут отображаться ваши заявки.</td></tr>
-                        </tbody>
-                    </table>
+
+                <div class="p-4 pb-3">
+                    <h2 class="h5 mb-0">
+                        Мои заявки
+                    </h2>
                 </div>
+
+                <div class="table-responsive">
+
+                    <table class="table align-middle mb-0">
+
+                        <thead class="table-light">
+                            <tr>
+                                <th class="ps-4">Вид</th>
+                                <th>Период</th>
+                                <th>Дни</th>
+                                <th>Статус</th>
+                                <th class="pe-4">Описание</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+
+                            {% for item in requests %}
+
+                            <tr>
+
+                                <td class="ps-4">
+                                    Отпуск
+                                </td>
+
+                                <td>
+                                    {{ item.start_date.strftime('%d.%m.%Y') }}
+                                    —
+                                    {{ item.end_date.strftime('%d.%m.%Y') }}
+                                </td>
+
+                                <td>
+                                    {{ item.days }}
+                                </td>
+
+                                <td>
+
+                                    {% if item.status == 'pending' %}
+
+                                        <span class="badge rounded-pill
+                                                     bg-warning-subtle
+                                                     text-warning-emphasis">
+                                            На рассмотрении
+                                        </span>
+
+                                    {% elif item.status == 'approved' %}
+
+                                        <span class="badge rounded-pill
+                                                     bg-success-subtle
+                                                     text-success-emphasis">
+                                            Одобрено
+                                        </span>
+
+                                    {% elif item.status == 'rejected' %}
+
+                                        <span class="badge rounded-pill
+                                                     bg-danger-subtle
+                                                     text-danger-emphasis">
+                                            Отклонено
+                                        </span>
+
+                                    {% else %}
+
+                                        <span class="badge text-bg-secondary">
+                                            {{ item.status }}
+                                        </span>
+
+                                    {% endif %}
+
+                                </td>
+
+                                <td class="pe-4">
+                                    {{ item.comment or "—" }}
+                                </td>
+
+                            </tr>
+
+                            {% else %}
+
+                            <tr>
+                                <td colspan="5"
+                                    class="text-center text-secondary py-5">
+                                    Заявок пока нет.
+                                </td>
+                            </tr>
+
+                            {% endfor %}
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
             </div>
+
         </section>
     </div>
+
     {% else %}
+
+    <!-- ЗАЯВКИ ДЛЯ MANAGER И HR -->
+
     <div class="col-12">
         <section class="card border-0 shadow-sm">
+
             <div class="card-body p-4">
-                <h2 class="h5">Заявки на рассмотрение</h2>
-                {% if user.role.name == 'manager' %}
-                <p class="text-secondary">Здесь будут отображаться заявки ваших подчинённых.</p>
-                <!-- INTEGRATION: app.api.requests передаёт заявки прямых подчинённых и подключает действия рассмотрения для manager. -->
+
+                <h2 class="h5 mb-2">
+                    Заявки на рассмотрение
+                </h2>
+
+                {% if user.role.name|lower == 'manager' %}
+
+                    <p class="text-secondary mb-4">
+                        Здесь отображаются заявки ваших подчинённых.
+                    </p>
+
                 {% else %}
-                <p class="text-secondary">Здесь будут отображаться заявки всех сотрудников.</p>
-                <!-- INTEGRATION: app.api.requests передаёт общий список заявок и подключает действия рассмотрения для HR. -->
+
+                    <p class="text-secondary mb-4">
+                        Здесь отображаются заявки всех сотрудников.
+                    </p>
+
                 {% endif %}
-                <div class="text-center text-secondary py-4">Список заявок пока не подключён.</div>
+
+                {% for item in requests %}
+
+                <div class="border rounded-3 p-3 mb-3">
+
+                    <div class="d-flex justify-content-between
+                                align-items-start flex-wrap gap-3 mb-3">
+
+                        <div>
+
+                            <h3 class="h6 fw-semibold mb-1">
+                                {{ item.employee.first_name }}
+                                {{ item.employee.last_name }}
+                            </h3>
+
+                            <p class="text-secondary small mb-0">
+                                Отпуск:
+                                {{ item.start_date.strftime('%d.%m.%Y') }}
+                                —
+                                {{ item.end_date.strftime('%d.%m.%Y') }}
+                            </p>
+
+                            <p class="text-secondary small mb-0">
+                                Количество дней: {{ item.days }}
+                            </p>
+
+                        </div>
+
+                        <div>
+
+                            {% if item.status == 'pending' %}
+
+                                <span class="badge rounded-pill
+                                             bg-warning-subtle
+                                             text-warning-emphasis">
+                                    На рассмотрении
+                                </span>
+
+                            {% elif item.status == 'approved' %}
+
+                                <span class="badge rounded-pill
+                                             bg-success-subtle
+                                             text-success-emphasis">
+                                    Одобрено
+                                </span>
+
+                            {% elif item.status == 'rejected' %}
+
+                                <span class="badge rounded-pill
+                                             bg-danger-subtle
+                                             text-danger-emphasis">
+                                    Отклонено
+                                </span>
+
+                            {% endif %}
+
+                        </div>
+
+                    </div>
+
+                    <p class="mb-3">
+                        <span class="fw-semibold">Комментарий:</span>
+                        {{ item.comment or "—" }}
+                    </p>
+
+                    {% if item.status == 'pending' %}
+
+                    <div class="d-flex gap-2 flex-wrap">
+
+                        <form method="POST"
+                              action="{{ url_for('users.review_vacation_request',
+                                               request_id=item.id,
+                                               action='approve') }}">
+
+                            <button type="submit"
+                                    class="btn btn-success rounded-3 px-4">
+                                Одобрить
+                            </button>
+
+                        </form>
+
+                        <form method="POST"
+                              action="{{ url_for('users.review_vacation_request',
+                                               request_id=item.id,
+                                               action='reject') }}">
+
+                            <button type="submit"
+                                    class="btn btn-outline-danger rounded-3 px-4">
+                                Отклонить
+                            </button>
+
+                        </form>
+
+                    </div>
+
+                    {% endif %}
+
+                </div>
+
+                {% else %}
+
+                <div class="text-center text-secondary py-5">
+                    Заявок пока нет.
+                </div>
+
+                {% endfor %}
+
             </div>
+
         </section>
     </div>
+
     {% endif %}
+
 </div>
-{% if user.role.name == 'employee' %}
-<script>
-    const requestType = document.getElementById("request_type");
-    if (requestType) {
-        const dateInputs = [document.getElementById("start_date"), document.getElementById("end_date")];
-        function updateRequestFields() {
-            const needsDates = ["vacation", "sick_leave"].includes(requestType.value);
-            for (const input of dateInputs) {
-                input.required = needsDates;
-                input.closest(".mb-3").hidden = !needsDates;
-                if (!needsDates) input.value = "";
-            }
-        }
-        requestType.addEventListener("change", updateRequestFields);
-        updateRequestFields();
-    }
-</script>
-{% endif %}
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+    {% for category, message in messages %}
+        {% if category == "danger" %}
+
+            <div class="modal fade"
+                 id="vacationErrorModal"
+                 tabindex="-1"
+                 aria-labelledby="vacationErrorTitle"
+                 aria-hidden="true">
+
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content border-0 rounded-4 shadow">
+
+                        <div class="modal-header border-0 pb-0">
+                            <h5 class="modal-title fw-semibold"
+                                id="vacationErrorTitle">
+                                Не удалось отправить заявку
+                            </h5>
+
+                            <button type="button"
+                                    class="btn-close"
+                                    data-bs-dismiss="modal"
+                                    aria-label="Закрыть">
+                            </button>
+                        </div>
+
+                        <div class="modal-body py-4">
+                            <p class="text-secondary mb-0">
+                                {{ message }}
+                            </p>
+                        </div>
+
+                        <div class="modal-footer border-0 pt-0">
+                            <button type="button"
+                                    class="btn btn-dark rounded-3 px-4"
+                                    data-bs-dismiss="modal">
+                                Понятно
+                            </button>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+
+            <script>
+                document.addEventListener("DOMContentLoaded", function () {
+                    const modalElement = document.getElementById(
+                        "vacationErrorModal"
+                    );
+
+                    if (modalElement && window.bootstrap) {
+                        const modal = new bootstrap.Modal(modalElement);
+                        modal.show();
+                    }
+                });
+            </script>
+
+        {% endif %}
+    {% endfor %}
+{% endwith %}
+
 {% endblock %}

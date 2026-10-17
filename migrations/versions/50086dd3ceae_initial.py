@@ -1,8 +1,8 @@
-"""initial HR models
+"""initial
 
-Revision ID: e289b3b3b1c2
+Revision ID: 50086dd3ceae
 Revises: 
-Create Date: 2026-10-17 17:05:05.619414
+Create Date: 2026-10-17 20:38:45.408800
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = 'e289b3b3b1c2'
+revision = '50086dd3ceae'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -53,23 +53,17 @@ def upgrade():
     sa.Column('hire_date', sa.Date(), nullable=False),
     sa.Column('vacation_days', sa.Integer(), server_default='24', nullable=False),
     sa.Column('salary', sa.Numeric(precision=12, scale=2), nullable=True),
+    sa.Column('vacation_balance', sa.Integer(), nullable=False),
     sa.Column('department_id', sa.Integer(), nullable=False),
     sa.Column('position_id', sa.Integer(), nullable=False),
     sa.Column('manager_id', sa.Integer(), nullable=True),
     sa.CheckConstraint('manager_id IS NULL OR manager_id <> id', name='ck_employee_not_self_manager'),
+    sa.CheckConstraint('vacation_balance >= 0', name='ck_employee_vacation_balance'),
     sa.ForeignKeyConstraint(['department_id'], ['departments.id'], ),
     sa.ForeignKeyConstraint(['manager_id'], ['employees.id'], ),
     sa.ForeignKeyConstraint(['position_id'], ['positions.id'], ),
     sa.PrimaryKeyConstraint('id'),
     sa.UniqueConstraint('email')
-    )
-    op.create_table('ai_conversations',
-    sa.Column('id', sa.Integer(), nullable=False),
-    sa.Column('employee_id', sa.Integer(), nullable=False),
-    sa.Column('title', sa.String(length=255), nullable=True),
-    sa.Column('created_at', sa.DateTime(timezone=True), nullable=False),
-    sa.ForeignKeyConstraint(['employee_id'], ['employees.id'], ),
-    sa.PrimaryKeyConstraint('id')
     )
     op.create_table('courses',
     sa.Column('id', sa.Integer(), nullable=False),
@@ -87,26 +81,9 @@ def upgrade():
     sa.Column('title', sa.String(length=255), nullable=False),
     sa.Column('content', sa.Text(), nullable=False),
     sa.Column('created_at', sa.DateTime(timezone=True), nullable=False),
+    sa.Column('updated_at', sa.DateTime(timezone=True), nullable=False),
     sa.ForeignKeyConstraint(['author_id'], ['employees.id'], ),
     sa.ForeignKeyConstraint(['category_id'], ['knowledge_categories.id'], ),
-    sa.PrimaryKeyConstraint('id')
-    )
-    op.create_table('performance_reviews',
-    sa.Column('id', sa.Integer(), nullable=False),
-    sa.Column('employee_id', sa.Integer(), nullable=False),
-    sa.Column('reviewer_id', sa.Integer(), nullable=False),
-    sa.Column('period_start', sa.Date(), nullable=False),
-    sa.Column('period_end', sa.Date(), nullable=False),
-    sa.Column('score', sa.Integer(), nullable=True),
-    sa.Column('strengths', sa.Text(), nullable=True),
-    sa.Column('weaknesses', sa.Text(), nullable=True),
-    sa.Column('status', sa.String(length=20), nullable=False),
-    sa.Column('created_at', sa.DateTime(timezone=True), nullable=False),
-    sa.CheckConstraint("status IN ('draft', 'completed')", name='ck_review_status'),
-    sa.CheckConstraint('period_end >= period_start', name='ck_review_period'),
-    sa.CheckConstraint('score IS NULL OR (score >= 1 AND score <= 5)', name='ck_review_score'),
-    sa.ForeignKeyConstraint(['employee_id'], ['employees.id'], ),
-    sa.ForeignKeyConstraint(['reviewer_id'], ['employees.id'], ),
     sa.PrimaryKeyConstraint('id')
     )
     op.create_table('users',
@@ -123,19 +100,9 @@ def upgrade():
     sa.UniqueConstraint('employee_id'),
     sa.UniqueConstraint('username')
     )
-    op.create_table('vacation_balance_transactions',
-    sa.Column('id', sa.Integer(), nullable=False),
-    sa.Column('employee_id', sa.Integer(), nullable=False),
-    sa.Column('days_delta', sa.Numeric(precision=6, scale=2), nullable=False),
-    sa.Column('reason', sa.String(length=255), nullable=False),
-    sa.Column('created_at', sa.DateTime(timezone=True), nullable=False),
-    sa.ForeignKeyConstraint(['employee_id'], ['employees.id'], ),
-    sa.PrimaryKeyConstraint('id')
-    )
     op.create_table('vacation_requests',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('employee_id', sa.Integer(), nullable=False),
-    sa.Column('request_type', sa.String(length=30), nullable=False),
     sa.Column('start_date', sa.Date(), nullable=False),
     sa.Column('end_date', sa.Date(), nullable=False),
     sa.Column('status', sa.String(length=20), nullable=False),
@@ -147,16 +114,6 @@ def upgrade():
     sa.CheckConstraint('end_date >= start_date', name='ck_vacation_dates'),
     sa.ForeignKeyConstraint(['employee_id'], ['employees.id'], ),
     sa.ForeignKeyConstraint(['reviewed_by_id'], ['employees.id'], ),
-    sa.PrimaryKeyConstraint('id')
-    )
-    op.create_table('ai_messages',
-    sa.Column('id', sa.Integer(), nullable=False),
-    sa.Column('conversation_id', sa.Integer(), nullable=False),
-    sa.Column('sender', sa.String(length=20), nullable=False),
-    sa.Column('content', sa.Text(), nullable=False),
-    sa.Column('created_at', sa.DateTime(timezone=True), nullable=False),
-    sa.CheckConstraint("sender IN ('user', 'assistant', 'system')", name='ck_ai_sender'),
-    sa.ForeignKeyConstraint(['conversation_id'], ['ai_conversations.id'], ),
     sa.PrimaryKeyConstraint('id')
     )
     op.create_table('course_enrollments',
@@ -191,8 +148,8 @@ def upgrade():
     sa.Column('module_id', sa.Integer(), nullable=False),
     sa.Column('course_id', sa.Integer(), nullable=False),
     sa.Column('completed_at', sa.DateTime(timezone=True), nullable=False),
-    sa.ForeignKeyConstraint(['enrollment_id', 'course_id'], ['course_enrollments.id', 'course_enrollments.course_id'], ),
-    sa.ForeignKeyConstraint(['module_id', 'course_id'], ['course_modules.id', 'course_modules.course_id'], ),
+    sa.ForeignKeyConstraint(['enrollment_id', 'course_id'], ['course_enrollments.id', 'course_enrollments.course_id'], name='fk_progress_enrollment_course'),
+    sa.ForeignKeyConstraint(['module_id', 'course_id'], ['course_modules.id', 'course_modules.course_id'], name='fk_progress_module_course'),
     sa.PrimaryKeyConstraint('id'),
     sa.UniqueConstraint('enrollment_id', 'module_id', name='uq_enrollment_module')
     )
@@ -204,14 +161,10 @@ def downgrade():
     op.drop_table('module_progress')
     op.drop_table('course_modules')
     op.drop_table('course_enrollments')
-    op.drop_table('ai_messages')
     op.drop_table('vacation_requests')
-    op.drop_table('vacation_balance_transactions')
     op.drop_table('users')
-    op.drop_table('performance_reviews')
     op.drop_table('knowledge_articles')
     op.drop_table('courses')
-    op.drop_table('ai_conversations')
     op.drop_table('employees')
     op.drop_table('roles')
     op.drop_table('positions')

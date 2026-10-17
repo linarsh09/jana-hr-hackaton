@@ -12,11 +12,11 @@ from flask import (
 )
 from app.api.vacations.service import VacationService
 from app.extensions import db
-from app.models import Role, VacationRequest
-from app.core.permissions import login_required, role_required
+from app.models import Role, VacationRequest, Employee
+from app.core.permissions import login_required, role_required, can_manage_employee
 from .service import AccountService
 from .validators import validate_login_form, validate_register_form
-from datetime import date
+from datetime import date, datetime, timezone
 
 from app.api.account.service import AccountService
 
@@ -82,47 +82,99 @@ def profile():
         available_days=available_days,
     )
 
-@account_bp.route("/requests")
+@account_bp.route("/requests", methods=["GET", "POST"])
 @login_required
 def requests_page():
     user = g.current_user
     employee = user.employee
+    role = user.role.name.lower()
 
-    role_name = user.role.name if user.role else None
+    if request.method == "POST":
+        if role != "employee" or employee is None:
+            abort(403)
 
-    if role_name == "hr":
-        requests = VacationRequest.query.all()
+        try:
+            VacationService.create_request(
+                employee_id=employee.id,
+                start_date=date.fromisoformat(request.form["start_date"]),
+                end_date=date.fromisoformat(request.form["end_date"]),
+                comment=request.form.get("comment", "").strip() or None
+            )
+            flash("Заявка успешно отправлена!", "success")
 
-    elif role_name == "manager":
-        if employee is None:
-            requests = []
-        else:
-            subordinate_ids = [
-                subordinate.id
-                for subordinate in employee.subordinates
-            ]
-            subordinate_ids.append(employee.id)
+        except (ValueError, KeyError) as error:
+            flash(str(error), "danger")
 
-            requests = VacationRequest.query.filter(
-                VacationRequest.employee_id.in_(
-                    subordinate_ids
-                )
-            ).all()
+        return redirect(url_for("users.requests_page"))
+
+    if role == "hr":
+        requests_list = VacationRequest.query.all()
+
+    elif role == "manager":
+        requests_list = (
+            VacationRequest.query
+            .join(Employee, VacationRequest.employee_id == Employee.id)
+            .filter(Employee.manager_id == employee.id)
+            .all()
+            if employee else []
+        )
+
+    elif role == "employee":
+        requests_list = (
+            VacationRequest.query
+            .filter_by(employee_id=employee.id)
+            .all()
+            if employee else []
+        )
 
     else:
-        requests = (
-            employee.vacation_requests
-            if employee is not None
-            else []
-        )
+        abort(403)
+
+    available_days = (
+        VacationService.get_available_days(employee.id)
+        if role == "employee" and employee else None
+    )
 
     return render_template(
         "account/requests.html",
         user=user,
         employee=employee,
-        requests=requests,
+        requests=requests_list,
+        available_days=available_days
     )
 
+
+@account_bp.route(
+    "/requests/<int:request_id>/<action>",
+    methods=["POST"]
+)
+@role_required("manager", "hr")
+def review_vacation_request(request_id, action):
+    if action not in ("approve", "reject"):
+        abort(404)
+
+    user = g.current_user
+    reviewer = user.employee
+    vacation = db.get_or_404(VacationRequest, request_id)
+
+    if not can_manage_employee(vacation.employee):
+        abort(403)
+
+    if vacation.status != "pending":
+        flash("Заявка уже рассмотрена.", "warning")
+        return redirect(url_for("users.requests_page"))
+
+    vacation.status = (
+        "approved" if action == "approve" else "rejected"
+    )
+
+    vacation.reviewed_by_id = reviewer.id if reviewer else None
+    vacation.reviewed_at = datetime.now(timezone.utc)
+
+    db.session.commit()
+
+    flash("Статус заявки обновлён.", "success")
+    return redirect(url_for("users.requests_page"))
 
 @account_bp.route("/courses")
 @login_required

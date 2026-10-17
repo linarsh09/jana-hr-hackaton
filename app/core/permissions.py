@@ -1,12 +1,10 @@
-
 from functools import wraps
 
 from flask import g, redirect, url_for, abort, session
 from sqlalchemy import false
-from app.models import Employee, User, Role
+
 from app.extensions import db
 from app.models import Employee, User
-
 
 def load_current_user():
     """Загружает текущего пользователя для запроса."""
@@ -50,7 +48,11 @@ def role_required(*allowed_roles: str):
             user = getattr(g, "current_user", None)
             if user is None:
                 return redirect(url_for("users.login"))
-            if user.role is None or user.role.name not in allowed_roles:
+            if (
+                user.role is None
+                or user.role.name.lower() not in
+                {role.lower() for role in allowed_roles}
+            ):
                 abort(403)
             return view(*args, **kwargs)
         return wrapped

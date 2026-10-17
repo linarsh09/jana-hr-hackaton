@@ -21,7 +21,7 @@ class VacationRepository:
             VacationRequest.status.in_(("pending", "approved"))
         ).all()
 
-        return sum(item.days for item in requests)
+        return sum((item.end_date - item.start_date).days + 1 for item in requests)
 
     @staticmethod
     def has_date_overlap(
