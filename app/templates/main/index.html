@@ -1,0 +1,247 @@
+
+{% extends "_layout.html" %}
+
+{% block content %}
+
+<style>
+  body {
+    background-color: #f3f6f3;
+    color: #24352b;
+  }
+
+  .hero {
+    background: linear-gradient(135deg, #e1eee3, #f7faf7);
+    border-radius: 28px;
+    padding: 65px 55px;
+    overflow: hidden;
+  }
+
+  .hero-label {
+    display: inline-block;
+    background-color: #d0e6d4;
+    color: #28623c;
+    padding: 8px 16px;
+    border-radius: 30px;
+    font-size: 14px;
+    margin-bottom: 22px;
+  }
+
+  .hero h1 {
+    font-size: clamp(32px, 4vw, 52px);
+    font-weight: 700;
+    line-height: 1.2;
+    margin-bottom: 22px;
+  }
+
+  .hero p {
+    color: #647368;
+    font-size: 17px;
+    line-height: 1.8;
+    max-width: 520px;
+  }
+
+  .hero-image {
+    width: 100%;
+    max-width: 390px;
+    height: auto;
+  }
+
+  .section-title {
+    font-weight: 700;
+    margin-bottom: 15px;
+  }
+
+  .info-card {
+    background: white;
+    border: 1px solid #e5ebe5;
+    border-radius: 18px;
+    padding: 28px;
+    height: 100%;
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+
+  .info-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 10px 25px rgba(30, 60, 40, 0.07);
+  }
+
+  .card-icon {
+    width: 48px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #e5f2e7;
+    border-radius: 14px;
+    color: #278044;
+    font-size: 23px;
+    margin-bottom: 20px;
+  }
+
+  .info-card h5 {
+    font-weight: 600;
+    margin-bottom: 12px;
+  }
+
+  .info-card p {
+    color: #718075;
+    line-height: 1.7;
+    margin-bottom: 0;
+  }
+
+  .about-section {
+    background: #ffffff;
+    border-radius: 24px;
+    padding: 40px;
+  }
+
+  .site-footer {
+    color: #819087;
+    font-size: 14px;
+  }
+
+  @media (max-width: 767px) {
+    .hero {
+      padding: 35px 24px;
+    }
+
+    .about-section {
+      padding: 28px 22px;
+    }
+  }
+</style>
+
+<div class="col-12 py-5">
+
+  <!-- Главный экран -->
+  <section class="hero mb-5">
+    <div class="row align-items-center g-5">
+
+      <div class="col-lg-7">
+        <span class="hero-label">
+          DIGITAL HR · JanaMen
+        </span>
+
+        <h1>
+          Новые возможности<br>
+          начинаются здесь
+        </h1>
+
+        <p>
+          JanaMen — цифровая платформа, созданная для
+          упрощения HR-процессов. Находите нужную информацию,
+          знакомьтесь с возможностями проекта и используйте
+          современные инструменты в одном месте.
+        </p>
+
+        <div class="d-flex flex-wrap gap-3 mt-4">
+          <a href="/login"
+             class="btn btn-success btn-lg px-4 rounded-pill">
+            Войти в систему
+          </a>
+
+          <a href="#about"
+             class="btn btn-outline-success btn-lg px-4 rounded-pill">
+            О проекте
+          </a>
+        </div>
+      </div>
+
+      <div class="col-lg-5 text-center">
+        <img
+          src="https://images.unsplash.com/photo-1521737711867-e3b97375f902?auto=format&fit=crop&w=800&q=80"
+          alt="Команда специалистов"
+          class="hero-image rounded-4">
+      </div>
+
+    </div>
+  </section>
+
+  <!-- Преимущества -->
+  <section id="advantages" class="mb-5 py-3">
+    <div class="text-center mb-4">
+      <h2 class="section-title">Всё необходимое в одном месте</h2>
+      <p class="text-secondary">
+        Технологии, которые помогают работать эффективнее
+      </p>
+    </div>
+
+    <div class="row g-4">
+
+      <div class="col-md-4">
+        <div class="info-card">
+          <div class="card-icon">👥</div>
+          <h5>Для сотрудников</h5>
+          <p>
+            Удобный доступ к информации и цифровым сервисам
+            в рамках единой платформы.
+          </p>
+        </div>
+      </div>
+
+      <div class="col-md-4">
+        <div class="info-card">
+          <div class="card-icon">⚙️</div>
+          <h5>Простые процессы</h5>
+          <p>
+            Сокращение рутинных действий и упрощение
+            взаимодействия с HR-службой.
+          </p>
+        </div>
+      </div>
+
+      <div class="col-md-4">
+        <div class="info-card">
+          <div class="card-icon">🔒</div>
+          <h5>Единая система</h5>
+          <p>
+            Организованный доступ к функциям платформы
+            после авторизации пользователя.
+          </p>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- О проекте -->
+  <section id="about" class="about-section mb-5">
+    <div class="row align-items-center g-4">
+      <div class="col-lg-8">
+        <h2 class="section-title">О проекте JanaMen</h2>
+        <p class="text-secondary mb-0" style="line-height: 1.9;">
+          Мы стремимся сделать взаимодействие с HR-сервисами
+          более понятным, удобным и доступным. JanaMen объединяет
+          цифровые инструменты и необходимую информацию,
+          помогая пользователям быстрее решать повседневные задачи.
+        </p>
+      </div>
+
+      <div class="col-lg-4 text-lg-end">
+        <a href="/login"
+           class="btn btn-success px-4 py-2 rounded-pill">
+          Начать работу →
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Контакты -->
+  <section id="contacts" class="text-center py-4 mb-3">
+    <h2 class="section-title">Остались вопросы?</h2>
+    <p class="text-secondary mb-3">
+      Свяжитесь с нашей командой, чтобы узнать больше о проекте.
+    </p>
+    <a href="mailto:info@example.com"
+       class="text-success text-decoration-none fw-semibold">
+      Написать нам
+    </a>
+  </section>
+
+  <footer class="site-footer text-center border-top pt-4 pb-3">
+    © 2026 JanaMen · DIGITAL HR
+  </footer>
+
+</div>
+
+{% endblock %}

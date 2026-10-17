@@ -10,7 +10,6 @@ from app.api.account.repository import AccountRepository
 
 
 class AccountService:
-
     @staticmethod
     def verify_password(user: User, password: str) -> bool:
         return AccountRepository.verify_password(user, password)
@@ -53,6 +52,7 @@ class AccountService:
             role_id=role_id
         )
 
+    
     @staticmethod
     def create_employee(
         *,
@@ -67,43 +67,60 @@ class AccountService:
         role_name: str = "employee",
         manager_id: int | None = None,
     ) -> User:
-
         username = username.strip()
         first_name = first_name.strip()
         last_name = last_name.strip()
         email = email.strip().lower()
+        role_name = role_name.strip().lower()
 
-        if not all([username, first_name, last_name, email]):
-            raise ValueError("Заполните обязательные поля")
+        if not all((username, first_name, last_name, email)):
+            raise ValueError("Заполните обязательные поля.")
+
+        if len(username) > 100:
+            raise ValueError("Логин не должен превышать 100 символов.")
 
         if len(password) < 8:
-            raise ValueError("Пароль должен содержать минимум 8 символов")
+            raise ValueError(
+                "Пароль должен содержать минимум 8 символов."
+            )
 
         if role_name not in ("employee", "manager"):
-            raise ValueError("Недопустимая роль")
+            raise ValueError("Недопустимая роль.")
+
+        if not isinstance(hire_date, date):
+            raise ValueError("Укажите корректную дату приёма.")
 
         role = Role.query.filter_by(name=role_name).first()
-
         if role is None:
-            raise ValueError("Роль не найдена")
+            raise ValueError("Роль не найдена.")
 
         if db.session.get(Department, department_id) is None:
-            raise ValueError("Отдел не найден")
+            raise ValueError("Подразделение не найдено.")
 
         if db.session.get(Position, position_id) is None:
-            raise ValueError("Должность не найдена")
+            raise ValueError("Должность не найдена.")
 
+        if AccountRepository.get_by_username(username):
+            raise ValueError("Такой логин уже существует.")
+
+        if Employee.query.filter_by(email=email).first():
+            raise ValueError("Такой email уже существует.")
+
+        manager = None
         if manager_id is not None:
             manager = db.session.get(Employee, manager_id)
 
             if manager is None:
-                raise ValueError("Руководитель не найден")
+                raise ValueError("Руководитель не найден.")
 
-        if AccountRepository.get_by_username(username):
-            raise ValueError("Такой логин уже существует")
-
-        if Employee.query.filter_by(email=email).first():
-            raise ValueError("Такой email уже существует")
+            if (
+                manager.user is None
+                or manager.user.role is None
+                or manager.user.role.name.lower() != "manager"
+            ):
+                raise ValueError(
+                    "Выбранный сотрудник не является руководителем."
+                )
 
         employee = Employee(
             first_name=first_name,
@@ -129,11 +146,11 @@ class AccountService:
             db.session.commit()
             return user
 
-        except IntegrityError:
+        except IntegrityError as error:
             db.session.rollback()
             raise ValueError(
-                "Пользователь с таким логином или email уже существует"
-            )
+                "Пользователь с таким логином или email уже существует."
+            ) from error
 
         except Exception:
             db.session.rollback()

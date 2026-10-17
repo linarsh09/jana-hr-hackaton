@@ -73,6 +73,7 @@ class Employee(db.Model):
     last_name = db.Column(db.String(100), nullable=False)
     email = db.Column(db.String(255), unique=True, nullable=False)
     hire_date = db.Column(db.Date, nullable=False)
+    vacation_days = db.Column(db.Integer, nullable=False, default=24, server_default="24")
     salary = db.Column(db.Numeric(12, 2))
     vacation_balance = db.Column(db.Integer, nullable=False, default=0)
     department_id = db.Column(db.Integer, db.ForeignKey("departments.id"), nullable=False)
@@ -109,9 +110,7 @@ class VacationRequest(db.Model):
     __tablename__ = "vacation_requests"
     __table_args__ = (
         CheckConstraint("end_date >= start_date", name="ck_vacation_dates"),
-        CheckConstraint("status IN ('pending', 'approved', 'rejected')", name="ck_vacation_status"),
-    )
-
+        CheckConstraint("status IN ('pending', 'approved', 'rejected')", name="ck_vacation_status"),)
     id = db.Column(db.Integer, primary_key=True)
     employee_id = db.Column(db.Integer, db.ForeignKey("employees.id"), nullable=False)
     start_date = db.Column(db.Date, nullable=False)

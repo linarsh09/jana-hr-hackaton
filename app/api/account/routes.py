@@ -10,12 +10,15 @@ from flask import (
     flash,
     abort,
 )
-
+from app.api.vacations.service import VacationService
 from app.extensions import db
 from app.models import Role, VacationRequest
 from app.core.permissions import login_required, role_required
 from .service import AccountService
 from .validators import validate_login_form, validate_register_form
+from datetime import date
+
+from app.api.account.service import AccountService
 
 
 account_bp = Blueprint(
@@ -67,8 +70,8 @@ def profile():
     employee = user.employee
 
     available_days = (
-        employee.vacation_balance
-        if employee is not None
+        VacationService.get_available_days(employee.id)
+        if employee
         else None
     )
 
@@ -78,7 +81,6 @@ def profile():
         employee=employee,
         available_days=available_days,
     )
-
 
 @account_bp.route("/requests")
 @login_required

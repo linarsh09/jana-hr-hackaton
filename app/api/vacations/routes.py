@@ -64,7 +64,7 @@ def create_vacation_request():
             "start_date": vacation.start_date.isoformat(),
             "end_date": vacation.end_date.isoformat(),
             "days": vacation.days,
-            "status": vacation.status.value,
+            "status": vacation.status,
             "comment": vacation.comment,
         }), 201
 

@@ -8,8 +8,9 @@ class EmployeeRepository:
         return User.query.order_by(User.id.asc()).all()
 
     @staticmethod
-    def get_by_id(user_id: int) -> Employee | None:
-        return db.session.get(Employee, user_id)
+    @staticmethod
+    def get_by_id(employee_id: int) -> Employee | None:
+        return db.session.get(Employee, employee_id)
 
     # ДОБАВЛЕНО: поиск по имени пользователя
     @staticmethod
