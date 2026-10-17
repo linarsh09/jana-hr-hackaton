@@ -13,7 +13,7 @@ admin_bp = Blueprint(
 
 @admin_bp.route("/employees")
 @login_required
-@role_required("hr")
+@role_required( "hr")
 def employees():
     employees = EmployeeService.get_all_employees()
 
