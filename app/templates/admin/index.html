@@ -69,9 +69,7 @@
                         </td>
 
                         <td>
-                            {% set role = employee.role.value
-                                if employee.role.value is defined
-                                else employee.role %}
+                            {% set role = employee.role.name if employee.role else '—' %}
 
                             <span class="badge
                                 {% if role|lower == 'hr' %}

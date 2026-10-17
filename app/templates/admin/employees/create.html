@@ -1,125 +1,41 @@
 {% extends "admin_layout.html" %}
 {% set active_page = 'employees' %}
-
 {% block title %}Добавить сотрудника{% endblock %}
 {% block page_title %}Добавить сотрудника{% endblock %}
 
 {% block content %}
 <div class="mb-4">
-    <a href="{{ url_for('admin.employees') }}"
-       class="text-decoration-none text-secondary">
-        ← Назад к сотрудникам
-    </a>
-
+    <a href="{{ url_for('admin.employees') }}" class="text-decoration-none text-secondary">← К сотрудникам</a>
     <h1 class="h3 mt-3 mb-1">Добавить сотрудника</h1>
-    <p class="text-secondary mb-0">
-        Заполните данные нового пользователя системы.
-    </p>
+    <p class="text-secondary">Здесь одновременно создаются кадровая карточка и учётная запись.</p>
 </div>
 
-<div class="card border-0 shadow-sm">
-    <div class="card-body p-4">
-        <form method="POST"
-              action="{{ url_for('admin.create_employee') }}">
-
-            {% if csrf_token is defined %}
-                <input type="hidden"
-                       name="csrf_token"
-                       value="{{ csrf_token() }}">
-            {% endif %}
-
-            <div class="mb-3">
-                <label for="username" class="form-label">
-                    Имя пользователя
-                </label>
-
-                <input
-                    type="text"
-                    class="form-control"
-                    id="username"
-                    name="username"
-                    maxlength="100"
-                    required
-                    autocomplete="username"
-                    placeholder="Введите имя пользователя"
-                    value="{{ request.form.get('username', '') }}"
-                >
-            </div>
-
-            <div class="mb-3">
-                <label for="password" class="form-label">
-                    Пароль
-                </label>
-
-                <input
-                    type="password"
-                    class="form-control"
-                    id="password"
-                    name="password"
-                    required
-                    minlength="8"
-                    autocomplete="new-password"
-                    placeholder="Минимум 8 символов"
-                >
-
-                <div class="form-text">
-                    Пароль будет сохранён в виде хеша.
-                </div>
-            </div>
-
-            <div class="mb-3">
-                <label for="role" class="form-label">
-                    Роль пользователя
-                </label>
-
-                <select class="form-select"
-                        id="role"
-                        name="role"
-                        required>
-                    <option value="EMPLOYEE"
-                        {% if request.form.get('role', 'EMPLOYEE') == 'EMPLOYEE' %}
-                            selected
-                        {% endif %}>
-                        Сотрудник
-                    </option>
-
-                    <option value="MANAGER"
-                        {% if request.form.get('role') == 'MANAGER' %}
-                            selected
-                        {% endif %}>
-                        Руководитель
-                    </option>
-
-                </select>
-            </div>
-
-            <div class="form-check form-switch mb-4">
-                <input
-                    class="form-check-input"
-                    type="checkbox"
-                    role="switch"
-                    id="is_active"
-                    name="is_active"
-                    value="1"
-                    checked
-                >
-
-                <label class="form-check-label" for="is_active">
-                    Учётная запись активна
-                </label>
-            </div>
-
-            <div class="d-flex flex-wrap gap-2">
-                <button type="submit" class="btn btn-primary">
-                    Добавить сотрудника
-                </button>
-
-                <a href="{{ url_for('admin.employees') }}"
-                   class="btn btn-outline-secondary">
-                    Отмена
-                </a>
-            </div>
-        </form>
-    </div>
-</div>
+{% if not departments or not positions %}
+<div class="alert alert-warning">Сначала добавьте в базу хотя бы одно подразделение и одну должность.</div>
+{% else %}
+<form method="post" action="{{ url_for('admin.create_employee') }}" class="jana-form-width">
+    {% if csrf_token is defined %}<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">{% endif %}
+    <section class="card mb-4"><div class="card-body p-4">
+        <h2 class="h5 mb-3">Учётная запись</h2>
+        <div class="row g-3">
+            <div class="col-12 col-md-6"><label class="form-label" for="username">Имя пользователя</label><input class="form-control" id="username" name="username" maxlength="100" required value="{{ request.form.get('username', '') }}"></div>
+            <div class="col-12 col-md-6"><label class="form-label" for="password">Пароль</label><input class="form-control" id="password" name="password" type="password" minlength="8" required autocomplete="new-password"></div>
+            <div class="col-12 col-md-6"><label class="form-label" for="role">Роль</label><select class="form-select" id="role" name="role" required><option value="employee" {% if request.form.get('role', 'employee') == 'employee' %}selected{% endif %}>Сотрудник</option><option value="manager" {% if request.form.get('role') == 'manager' %}selected{% endif %}>Руководитель</option></select></div>
+            <div class="col-12 col-md-6"><label class="form-label" for="manager_id">Руководитель</label><select class="form-select" id="manager_id" name="manager_id"><option value="">Не назначен</option>{% for manager in managers %}<option value="{{ manager.id }}" {% if request.form.get('manager_id')|int == manager.id %}selected{% endif %}>{{ manager.full_name }}</option>{% endfor %}</select><div class="form-text">В списке — руководители с созданной карточкой.</div></div>
+        </div>
+    </div></section>
+    <section class="card mb-4"><div class="card-body p-4">
+        <h2 class="h5 mb-3">Кадровая карточка</h2>
+        <div class="row g-3">
+            <div class="col-12 col-md-6"><label class="form-label" for="first_name">Имя</label><input class="form-control" id="first_name" name="first_name" maxlength="100" required value="{{ request.form.get('first_name', '') }}"></div>
+            <div class="col-12 col-md-6"><label class="form-label" for="last_name">Фамилия</label><input class="form-control" id="last_name" name="last_name" maxlength="100" required value="{{ request.form.get('last_name', '') }}"></div>
+            <div class="col-12 col-md-6"><label class="form-label" for="email">Рабочий email</label><input class="form-control" id="email" name="email" type="email" maxlength="255" required value="{{ request.form.get('email', '') }}"></div>
+            <div class="col-12 col-md-6"><label class="form-label" for="hire_date">Дата приёма</label><input class="form-control" id="hire_date" name="hire_date" type="date" required value="{{ request.form.get('hire_date', '') }}"></div>
+            <div class="col-12 col-md-6"><label class="form-label" for="department_id">Подразделение</label><select class="form-select" id="department_id" name="department_id" required><option value="">Выберите подразделение</option>{% for department in departments %}<option value="{{ department.id }}" {% if request.form.get('department_id')|int == department.id %}selected{% endif %}>{{ department.name }}</option>{% endfor %}</select></div>
+            <div class="col-12 col-md-6"><label class="form-label" for="position_id">Должность</label><select class="form-select" id="position_id" name="position_id" required><option value="">Выберите должность</option>{% for position in positions %}<option value="{{ position.id }}" {% if request.form.get('position_id')|int == position.id %}selected{% endif %}>{{ position.name }}</option>{% endfor %}</select></div>
+        </div>
+    </div></section>
+    <div class="d-flex gap-2"><button type="submit" class="btn btn-primary">Создать сотрудника</button><a href="{{ url_for('admin.employees') }}" class="btn btn-outline-secondary">Отмена</a></div>
+</form>
+{% endif %}
 {% endblock %}

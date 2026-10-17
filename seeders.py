@@ -1,365 +1,207 @@
-
-from datetime import date
-
-from werkzeug.security import generate_password_hash
+"""Idempotent demo data for JanaMen. Run: python seeders.py
+Set JANAMEN_SEED_PASSWORD in the environment to create demo accounts.
+Existing users, including admin, are never modified.
+"""
+import os
+from datetime import date, datetime, timezone
+from decimal import Decimal
 
 from app import create_app
 from app.extensions import db
 from app.models import (
-    Department,
-    Employee,
-    VacationRequest,
-    PerformanceReview,
-    AIConversation,
-    VacationStatus,
-    ReviewStatus,
-    User,
-    UserRole,
+    Role, User, Department, Position, Employee, VacationRequest,
+    KnowledgeCategory, KnowledgeArticle, Course, CourseModule,
+    CourseEnrollment, ModuleProgress,
 )
 
 
-app = create_app()
+def get_or_create(model, lookup, **values):
+    instance = db.session.query(model).filter_by(**lookup).first()
+    if instance is None:
+        instance = model(**lookup, **values)
+        db.session.add(instance)
+        db.session.flush()
+        print(f"+ {model.__tablename__}: {lookup}")
+    return instance
 
 
 def seed():
-    with app.app_context():
-        # ==========================================
-        # Очистка тестовых данных
-        # ==========================================
+    # Roles: exactly three allowed role names.
+    roles = {}
+    for name, description in [
+        ("employee", "Сотрудник"),
+        ("manager", "Руководитель"),
+        ("hr", "HR / Администратор"),
+    ]:
+        roles[name] = get_or_create(Role, {"name": name}, description=description)
 
-        AIConversation.query.delete()
-        PerformanceReview.query.delete()
-        VacationRequest.query.delete()
-        Employee.query.delete()
-        Department.query.delete()
+    departments = {}
+    for name, description in [
+        ("IT", "Разработка и поддержка систем"),
+        ("HR", "Управление персоналом"),
+        ("Финансы", "Финансовый отдел"),
+        ("Маркетинг", "Маркетинг и коммуникации"),
+    ]:
+        departments[name] = get_or_create(Department, {"name": name}, description=description)
 
-        db.session.commit()
+    positions = {}
+    for name, description in [
+        ("Разработчик", "Разработка приложений"),
+        ("Тимлид", "Руководитель команды разработки"),
+        ("HR-специалист", "Управление кадрами"),
+        ("Аналитик", "Анализ данных и отчётность"),
+        ("Маркетолог", "Продвижение продуктов"),
+    ]:
+        positions[name] = get_or_create(Position, {"name": name}, description=description)
 
-        # ==========================================
-        # Departments
-        # ==========================================
+    employee_specs = [
+        ("Айдана", "Нурланова", "aidana.demo@janamen.example", "HR", "HR-специалист", "2023-03-01", "420000", 24),
+        ("Алибек", "Сериков", "alibek.demo@janamen.example", "IT", "Тимлид", "2022-09-12", "650000", 26),
+        ("Дана", "Ахметова", "dana.demo@janamen.example", "IT", "Разработчик", "2024-01-15", "390000", 18),
+        ("Мадина", "Касымова", "madina.demo@janamen.example", "Финансы", "Аналитик", "2024-06-03", "410000", 21),
+        ("Ержан", "Омаров", "erzhan.demo@janamen.example", "Маркетинг", "Маркетолог", "2025-02-10", "350000", 20),
+    ]
+    employees = {}
+    for first, last, email, dept, position, hire, salary, balance in employee_specs:
+        employees[email] = get_or_create(
+            Employee, {"email": email},
+            first_name=first, last_name=last, hire_date=date.fromisoformat(hire),
+            salary=Decimal(salary), vacation_balance=balance,
+            department_id=departments[dept].id, position_id=positions[position].id,
+        )
 
-        departments = [
-            Department(
-                name="IT",
-                description="Information Technology",
-            ),
-            Department(
-                name="Human Resources",
-                description="HR and People Operations",
-            ),
-            Department(
-                name="Finance",
-                description="Finance and Accounting",
-            ),
-            Department(
-                name="Marketing",
-                description="Marketing and Communications",
-            ),
-            Department(
-                name="Sales",
-                description="Sales and Business Development",
-            ),
-        ]
+    # Assign the reporting line only for newly unassigned demo employees.
+    lead = employees["alibek.demo@janamen.example"]
+    for email in ("dana.demo@janamen.example", "madina.demo@janamen.example", "erzhan.demo@janamen.example"):
+        person = employees[email]
+        if person.manager_id is None and person.id != lead.id:
+            person.manager_id = lead.id
+    db.session.flush()
 
-        db.session.add_all(departments)
+    demo_password = os.getenv("JANAMEN_SEED_PASSWORD")
+    accounts = [
+        ("demo_hr", "hr", "aidana.demo@janamen.example"),
+        ("demo_manager", "manager", "alibek.demo@janamen.example"),
+        ("demo_dana", "employee", "dana.demo@janamen.example"),
+        ("demo_madina", "employee", "madina.demo@janamen.example"),
+        ("demo_erzhan", "employee", "erzhan.demo@janamen.example"),
+    ]
+    if not demo_password or len(demo_password) < 8:
+        raise ValueError("Установите JANAMEN_SEED_PASSWORD (не менее 8 символов) перед запуском. Данные ещё не сохранены.")
+    for username, role_name, email in accounts:
+        person = employees[email]
+        existing = User.query.filter_by(username=username).first()
+        linked = User.query.filter_by(employee_id=person.id).first()
+        if existing:
+            print(f"= users: {username} уже существует (не изменён)")
+            continue
+        if linked:
+            print(f"! users: {email} уже связан с аккаунтом {linked.username}; пропуск")
+            continue
+        user = User(username=username, role_id=roles[role_name].id, employee_id=person.id, is_active=True)
+        user.set_password(demo_password)
+        db.session.add(user)
         db.session.flush()
+        print(f"+ users: {username}")
 
-        # ==========================================
-        # Employees
-        # ==========================================
+    categories = {}
+    for name in ("Отпуска", "Адаптация", "IT-поддержка", "Корпоративные правила"):
+        categories[name] = get_or_create(KnowledgeCategory, {"name": name})
 
-        employees = [
-            Employee(
-                first_name="Ivan",
-                last_name="Petrov",
-                email="ivan.petrov@example.com",
-                position="Backend Developer",
-                salary=350000,
-                hire_date=date(2023, 3, 15),
-                vacation_days=24,
-                department=departments[0],
-            ),
-            Employee(
-                first_name="Anna",
-                last_name="Smirnova",
-                email="anna.smirnova@example.com",
-                position="HR Manager",
-                salary=320000,
-                hire_date=date(2022, 7, 10),
-                vacation_days=18,
-                department=departments[1],
-            ),
-            Employee(
-                first_name="Dmitry",
-                last_name="Volkov",
-                email="dmitry.volkov@example.com",
-                position="Financial Analyst",
-                salary=300000,
-                hire_date=date(2024, 1, 20),
-                vacation_days=21,
-                department=departments[2],
-            ),
-            Employee(
-                first_name="Maria",
-                last_name="Sokolova",
-                email="maria.sokolova@example.com",
-                position="Marketing Manager",
-                salary=330000,
-                hire_date=date(2023, 9, 1),
-                vacation_days=16,
-                department=departments[3],
-            ),
-            Employee(
-                first_name="Alexey",
-                last_name="Morozov",
-                email="alexey.morozov@example.com",
-                position="Sales Manager",
-                salary=310000,
-                hire_date=date(2024, 5, 12),
-                vacation_days=20,
-                department=departments[4],
-            ),
-        ]
+    articles = [
+        ("Отпуска", "Как подать заявку на отпуск", "Откройте раздел заявок, выберите даты и отправьте запрос."),
+        ("Отпуска", "Как проверить остаток отпуска", "Остаток доступных дней отображается в личном кабинете."),
+        ("Адаптация", "Первый рабочий день", "Познакомьтесь с командой и получите доступы к рабочим системам."),
+        ("IT-поддержка", "Как обратиться в IT", "Опишите проблему и приложите сообщение об ошибке."),
+        ("Корпоративные правила", "Правила безопасности", "Не передавайте пароль и блокируйте рабочий компьютер."),
+    ]
+    author = employees["aidana.demo@janamen.example"]
+    for category, title, content in articles:
+        get_or_create(KnowledgeArticle, {"title": title, "category_id": categories[category].id}, author_id=author.id, content=content)
 
-        db.session.add_all(employees)
-        db.session.flush()
+    courses = {}
+    for title, description in [
+        ("Адаптация новичка", "Знакомство с компанией и процессами"),
+        ("Информационная безопасность", "Безопасная работа с данными"),
+        ("Основы коммуникации", "Рабочее общение и обратная связь"),
+        ("Работа с заявками", "Оформление и согласование заявок"),
+    ]:
+        courses[title] = get_or_create(Course, {"title": title}, description=description, created_by_id=author.id)
 
-        # ==========================================
-        # HR test user (the system has one elevated role: HR).
-        # ==========================================
+    module_specs = [
+        ("Адаптация новичка", 1, "О компании", "Миссия и структура JanaMen."),
+        ("Адаптация новичка", 2, "Первый день", "Рабочие инструменты и контакты."),
+        ("Информационная безопасность", 1, "Надёжные пароли", "Используйте уникальные пароли и MFA."),
+        ("Основы коммуникации", 1, "Обратная связь", "Как давать конструктивную обратную связь."),
+        ("Работа с заявками", 1, "Заявка на отпуск", "Как отправить запрос руководителю."),
+    ]
+    modules = {}
+    for course_title, order, title, content in module_specs:
+        course = courses[course_title]
+        modules[(course_title, order)] = get_or_create(
+            CourseModule, {"course_id": course.id, "position": order}, title=title, content=content
+        )
 
-        hr_user = User.query.filter_by(username="hr").first()
-        if hr_user is None:
-            # Reuse the old seeded admin account if this database has one.
-            hr_user = User.query.filter_by(username="admin").first()
-            if hr_user is not None:
-                hr_user.username = "hr"
+    request_specs = [
+        ("dana.demo@janamen.example", "2026-11-02", "2026-11-06", "pending", "Плановый отпуск"),
+        ("madina.demo@janamen.example", "2026-11-09", "2026-11-13", "approved", "Семейная поездка"),
+        ("erzhan.demo@janamen.example", "2026-12-01", "2026-12-03", "rejected", "Личные дела"),
+        ("alibek.demo@janamen.example", "2026-12-14", "2026-12-18", "pending", "Зимний отпуск"),
+        ("aidana.demo@janamen.example", "2026-11-23", "2026-11-25", "approved", "Отдых"),
+    ]
+    for email, start, end, status, comment in request_specs:
+        person = employees[email]
+        start_date = date.fromisoformat(start)
+        reviewer = lead if person.id != lead.id else author
+        values = dict(end_date=date.fromisoformat(end), status=status, comment=comment)
+        if status != "pending":
+            values.update(reviewed_by_id=reviewer.id, reviewed_at=datetime(2026, 10, 16, 12, 0, tzinfo=timezone.utc))
+        get_or_create(VacationRequest, {"employee_id": person.id, "start_date": start_date}, **values)
 
-        if hr_user is None:
-            hr_user = User(
-                username="hr",
-                password_hash=generate_password_hash("hr"),
-                role="hr",
-                is_active=True,
-            )
+    enrollment_specs = [
+        ("dana.demo@janamen.example", "Адаптация новичка", "in_progress"),
+        ("madina.demo@janamen.example", "Информационная безопасность", "completed"),
+        ("erzhan.demo@janamen.example", "Основы коммуникации", "enrolled"),
+        ("alibek.demo@janamen.example", "Работа с заявками", "in_progress"),
+        ("aidana.demo@janamen.example", "Информационная безопасность", "completed"),
+    ]
+    enrollments = {}
+    for email, course_title, status in enrollment_specs:
+        person, course = employees[email], courses[course_title]
+        values = {"status": status}
+        if status == "completed":
+            values["completed_at"] = datetime(2026, 10, 16, 12, 0, tzinfo=timezone.utc)
+        enrollments[(email, course_title)] = get_or_create(
+            CourseEnrollment, {"employee_id": person.id, "course_id": course.id}, **values
+        )
 
-            db.session.add(hr_user)
+    progress_specs = [
+        ("dana.demo@janamen.example", "Адаптация новичка", 1),
+        ("madina.demo@janamen.example", "Информационная безопасность", 1),
+        ("alibek.demo@janamen.example", "Работа с заявками", 1),
+        ("aidana.demo@janamen.example", "Информационная безопасность", 1),
+    ]
+    for email, course_title, order in progress_specs:
+        enrollment = enrollments[(email, course_title)]
+        module = modules[(course_title, order)]
+        get_or_create(
+            ModuleProgress, {"enrollment_id": enrollment.id, "module_id": module.id},
+            course_id=enrollment.course_id,
+        )
 
-        hr_user.role = "hr"
-        hr_user.is_active = True
-        print("HR user ready.")
-
-        # ==========================================
-        # Vacation Requests
-        # ==========================================
-
-        vacation_requests = [
-            VacationRequest(
-                employee=employees[0],
-                start_date=date(2026, 10, 5),
-                end_date=date(2026, 10, 9),
-                status=VacationStatus.APPROVED,
-                comment="Family vacation",
-            ),
-            VacationRequest(
-                employee=employees[1],
-                start_date=date(2026, 11, 2),
-                end_date=date(2026, 11, 6),
-                status=VacationStatus.PENDING,
-                comment="Personal vacation",
-            ),
-            VacationRequest(
-                employee=employees[2],
-                start_date=date(2026, 10, 19),
-                end_date=date(2026, 10, 21),
-                status=VacationStatus.REJECTED,
-                comment="Quarter-end workload",
-            ),
-            VacationRequest(
-                employee=employees[3],
-                start_date=date(2026, 12, 21),
-                end_date=date(2026, 12, 25),
-                status=VacationStatus.APPROVED,
-                comment="Winter vacation",
-            ),
-            VacationRequest(
-                employee=employees[4],
-                start_date=date(2026, 10, 26),
-                end_date=date(2026, 10, 30),
-                status=VacationStatus.PENDING,
-                comment="Trip",
-            ),
-        ]
-
-        db.session.add_all(vacation_requests)
-        db.session.flush()
-
-        # ==========================================
-        # Performance Reviews
-        # ==========================================
-
-        performance_reviews = [
-            PerformanceReview(
-                employee=employees[0],
-                reviewer_name="Sergey Ivanov",
-                period="2026 H1",
-                score=5,
-                strengths="Strong backend skills, ownership, system design.",
-                weaknesses="Could improve documentation.",
-                comment="Excellent performance during the first half of the year.",
-                status=ReviewStatus.COMPLETED,
-            ),
-            PerformanceReview(
-                employee=employees[1],
-                reviewer_name="Elena Petrova",
-                period="2026 H1",
-                score=4,
-                strengths="Strong communication and employee relations.",
-                weaknesses="Could improve HR analytics.",
-                comment="Consistent and reliable performance.",
-                status=ReviewStatus.COMPLETED,
-            ),
-            PerformanceReview(
-                employee=employees[2],
-                reviewer_name="Michael Brown",
-                period="2026 H1",
-                score=4,
-                strengths="Good analytical thinking and financial modelling.",
-                weaknesses="Presentation skills can be improved.",
-                comment="Solid results across the reporting period.",
-                status=ReviewStatus.COMPLETED,
-            ),
-            PerformanceReview(
-                employee=employees[3],
-                reviewer_name="Olga Kuznetsova",
-                period="2026 H1",
-                score=3,
-                strengths="Creative campaigns and strong execution.",
-                weaknesses="Needs better planning and prioritization.",
-                comment="Good progress with room for development.",
-                status=ReviewStatus.COMPLETED,
-            ),
-            PerformanceReview(
-                employee=employees[4],
-                reviewer_name="Robert Wilson",
-                period="2026 H1",
-                score=5,
-                strengths="Excellent sales results and client relationships.",
-                weaknesses="Could share sales knowledge more with the team.",
-                comment="Outstanding sales performance.",
-                status=ReviewStatus.COMPLETED,
-            ),
-        ]
-
-        db.session.add_all(performance_reviews)
-        db.session.flush()
-
-        # ==========================================
-        # AI Conversations
-        # ==========================================
-
-        conversations = [
-            AIConversation(
-                employee=employees[0],
-                title="Vacation balance",
-                messages=[
-                    {
-                        "role": "user",
-                        "content": "How many vacation days do I have left?",
-                    },
-                    {
-                        "role": "assistant",
-                        "content": "You currently have 24 vacation days available.",
-                    },
-                ],
-            ),
-            AIConversation(
-                employee=employees[1],
-                title="Employee onboarding",
-                messages=[
-                    {
-                        "role": "user",
-                        "content": "Show me employees who joined this month.",
-                    },
-                    {
-                        "role": "assistant",
-                        "content": "There are currently no employees who joined this month.",
-                    },
-                ],
-            ),
-            AIConversation(
-                employee=employees[2],
-                title="Performance review",
-                messages=[
-                    {
-                        "role": "user",
-                        "content": "Summarize my latest performance review.",
-                    },
-                    {
-                        "role": "assistant",
-                        "content": (
-                            "Your latest review scored 4/5. "
-                            "Your main strengths are analytical thinking "
-                            "and financial modelling."
-                        ),
-                    },
-                ],
-            ),
-            AIConversation(
-                employee=employees[3],
-                title="Career development",
-                messages=[
-                    {
-                        "role": "user",
-                        "content": "What skills should I improve?",
-                    },
-                    {
-                        "role": "assistant",
-                        "content": (
-                            "Based on your latest review, "
-                            "planning and prioritization are key areas "
-                            "for development."
-                        ),
-                    },
-                ],
-            ),
-            AIConversation(
-                employee=employees[4],
-                title="Vacation request",
-                messages=[
-                    {
-                        "role": "user",
-                        "content": "I want to take vacation next month.",
-                    },
-                    {
-                        "role": "assistant",
-                        "content": (
-                            "Sure. Please provide the start and end dates "
-                            "of your vacation."
-                        ),
-                    },
-                ],
-            ),
-        ]
-
-        db.session.add_all(conversations)
-
-        # ==========================================
-        # Commit
-        # ==========================================
-
-        db.session.commit()
-
-        print("Database seeded successfully!")
-        print("Departments: 5")
-        print("Employees: 5")
-        print("Vacation requests: 5")
-        print("Performance reviews: 5")
-        print("AI conversations: 5")
-        print("HR username: hr")
-        print("HR password: hr")
+    db.session.commit()
+    print("\nГотово. Добавлены недостающие демоданные; существующие записи сохранены.")
+    for model in (Role, User, Department, Position, Employee, VacationRequest,
+                  KnowledgeCategory, KnowledgeArticle, Course, CourseModule,
+                  CourseEnrollment, ModuleProgress):
+        print(f"{model.__tablename__}: {db.session.query(model).count()}")
 
 
 if __name__ == "__main__":
-    seed()
+    app = create_app()
+    with app.app_context():
+        try:
+            seed()
+        except Exception:
+            db.session.rollback()
+            raise

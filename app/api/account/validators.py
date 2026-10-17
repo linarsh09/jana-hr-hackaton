@@ -1,3 +1,4 @@
+
 def validate_login_form(username: str | None, password: str | None):
     errors = {}
 
@@ -6,7 +7,7 @@ def validate_login_form(username: str | None, password: str | None):
     elif len(username.strip()) > 100:
         errors["username"] = "Логин слишком длинный."
 
-    if not password or not password.strip():
+    if not password:
         errors["password"] = "Введите пароль."
     elif len(password) > 128:
         errors["password"] = "Пароль слишком длинный."
@@ -14,12 +15,8 @@ def validate_login_form(username: str | None, password: str | None):
     if errors:
         return None, errors
 
-    # Убираем пробелы по краям только у логина.
-    # Пароль не изменяем, чтобы не нарушить проверку хэша.
-    clean_username = username.strip()
-
     return {
-        "username": clean_username,
+        "username": username.strip(),
         "password": password,
     }, {}
 

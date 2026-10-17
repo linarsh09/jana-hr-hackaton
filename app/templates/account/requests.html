@@ -7,16 +7,16 @@
 <div class="row g-4">
     <div class="col-12">
         <h1 class="h3 mb-1">Заявки</h1>
-        {% if user.role.value == 'employee' %}
+        {% if user.role.name == 'employee' %}
         <p class="text-secondary">Подайте заявку и следите за её статусом.</p>
-        {% elif user.role.value == 'manager' %}
+        {% elif user.role.name == 'manager' %}
         <p class="text-secondary">Рассматривайте заявки сотрудников, закреплённых за вами.</p>
         {% else %}
         <p class="text-secondary">Рассматривайте заявки сотрудников компании.</p>
         {% endif %}
     </div>
 
-    {% if user.role.value == 'employee' %}
+    {% if user.role.name == 'employee' %}
     <div class="col-12 col-xl-5">
         <section class="card border-0 shadow-sm">
             <div class="card-body p-4">
@@ -74,7 +74,7 @@
         <section class="card border-0 shadow-sm">
             <div class="card-body p-4">
                 <h2 class="h5">Заявки на рассмотрение</h2>
-                {% if user.role.value == 'manager' %}
+                {% if user.role.name == 'manager' %}
                 <p class="text-secondary">Здесь будут отображаться заявки ваших подчинённых.</p>
                 <!-- INTEGRATION: app.api.requests передаёт заявки прямых подчинённых и подключает действия рассмотрения для manager. -->
                 {% else %}
@@ -87,7 +87,7 @@
     </div>
     {% endif %}
 </div>
-{% if user.role.value == 'employee' %}
+{% if user.role.name == 'employee' %}
 <script>
     const requestType = document.getElementById("request_type");
     if (requestType) {

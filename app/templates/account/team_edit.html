@@ -28,12 +28,12 @@
                     <input class="form-control" id="email" name="email" type="email" maxlength="255" required value="{{ request.form.get('email', employee.email) }}">
                 </div>
                 <div class="col-12 col-md-6">
-                    <label class="form-label" for="position">Должность</label>
-                    <input class="form-control" id="position" name="position" maxlength="150" required value="{{ request.form.get('position', employee.position) }}">
-                </div>
-                <div class="col-12 col-md-6">
-                    <label class="form-label" for="company">Компания</label>
-                    <input class="form-control" id="company" name="company" maxlength="150" value="{{ request.form.get('company', employee.company or '') }}">
+                    <label class="form-label" for="position_id">Должность</label>
+                    <select class="form-select" id="position_id" name="position_id" required>
+                        {% for position in positions %}
+                        <option value="{{ position.id }}" {% if request.form.get('position_id', employee.position_id|string)|int == position.id %}selected{% endif %}>{{ position.name }}</option>
+                        {% endfor %}
+                    </select>
                 </div>
                 <div class="col-12 col-md-6">
                     <label class="form-label" for="department_id">Подразделение</label>
