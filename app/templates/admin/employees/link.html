@@ -18,7 +18,7 @@
                 <select class="form-select" id="user_id" name="user_id" required>
                     <option value="">Выберите пользователя</option>
                     {% for user in users %}
-                    <option value="{{ user.id }}">{{ user.username }} · {{ user.role.value }}{% if user.employee %} (уже связана){% endif %}</option>
+                    <option value="{{ user.id }}">{{ user.username }} · {{ user.role.name if user.role else 'роль не назначена' }}{% if user.employee %} (уже связана){% endif %}</option>
                     {% endfor %}
                 </select>
             </div>

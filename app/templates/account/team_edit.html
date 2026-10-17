@@ -1,0 +1,54 @@
+{% extends "account_layout.html" %}
+{% set active_page = 'team' %}
+{% block title %}Изменить сотрудника{% endblock %}
+{% block page_title %}Личный кабинет · Изменить сотрудника{% endblock %}
+
+{% block content %}
+<div class="mb-4">
+    <a href="{{ url_for('users.team_page') }}" class="text-decoration-none text-secondary">← К моим сотрудникам</a>
+    <h1 class="h3 mt-3 mb-1">Изменить данные сотрудника</h1>
+    <p class="text-secondary">{{ employee.full_name }}. Можно изменить только данные подчинённого.</p>
+</div>
+
+<form method="post" action="{{ url_for('admin.edit_employee', employee_id=user.id) }}" class="jana-form-width">
+    {% if csrf_token is defined %}<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">{% endif %}
+    <section class="card mb-4">
+        <div class="card-body p-4">
+            <div class="row g-3">
+                <div class="col-12 col-md-6">
+                    <label class="form-label" for="first_name">Имя</label>
+                    <input class="form-control" id="first_name" name="first_name" maxlength="100" required value="{{ request.form.get('first_name', employee.first_name) }}">
+                </div>
+                <div class="col-12 col-md-6">
+                    <label class="form-label" for="last_name">Фамилия</label>
+                    <input class="form-control" id="last_name" name="last_name" maxlength="100" required value="{{ request.form.get('last_name', employee.last_name) }}">
+                </div>
+                <div class="col-12 col-md-6">
+                    <label class="form-label" for="email">Рабочий email</label>
+                    <input class="form-control" id="email" name="email" type="email" maxlength="255" required value="{{ request.form.get('email', employee.email) }}">
+                </div>
+                <div class="col-12 col-md-6">
+                    <label class="form-label" for="position_id">Должность</label>
+                    <select class="form-select" id="position_id" name="position_id" required>
+                        {% for position in positions %}
+                        <option value="{{ position.id }}" {% if request.form.get('position_id', employee.position_id|string)|int == position.id %}selected{% endif %}>{{ position.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-12 col-md-6">
+                    <label class="form-label" for="department_id">Подразделение</label>
+                    <select class="form-select" id="department_id" name="department_id" required>
+                        {% for department in departments %}
+                        <option value="{{ department.id }}" {% if request.form.get('department_id', employee.department_id|string)|int == department.id %}selected{% endif %}>{{ department.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+        </div>
+    </section>
+    <div class="d-flex gap-2">
+        <button class="btn btn-primary" type="submit">Сохранить</button>
+        <a class="btn btn-outline-secondary" href="{{ url_for('users.team_page') }}">Отмена</a>
+    </div>
+</form>
+{% endblock %}

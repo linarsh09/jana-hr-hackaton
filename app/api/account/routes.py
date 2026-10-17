@@ -142,7 +142,8 @@ def team_page():
         employees = Employee.query.all()
     else:
         employees = (
-            employee.subordinates
+            [report for report in employee.subordinates
+             if report.user is not None and report.user.is_active]
             if employee is not None
             else []
         )
@@ -156,6 +157,7 @@ def team_page():
 
 @account_bp.route("/password", methods=["POST"])
 @login_required
+@role_required("manager", "hr")
 def change_password():
     user = g.current_user
 

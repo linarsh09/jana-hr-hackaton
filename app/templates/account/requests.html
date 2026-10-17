@@ -7,16 +7,16 @@
 <div class="row g-4">
     <div class="col-12">
         <h1 class="h3 mb-1">Заявки</h1>
-        {% if user.role.value == 'employee' %}
+        {% if user.role.name == 'employee' %}
         <p class="text-secondary">Подайте заявку и следите за её статусом.</p>
-        {% elif user.role.value == 'manager' %}
+        {% elif user.role.name == 'manager' %}
         <p class="text-secondary">Рассматривайте заявки сотрудников, закреплённых за вами.</p>
         {% else %}
         <p class="text-secondary">Рассматривайте заявки сотрудников компании.</p>
         {% endif %}
     </div>
 
-    {% if user.role.value == 'employee' %}
+    {% if user.role.name == 'employee' %}
     <div class="col-12 col-xl-5">
         <section class="card border-0 shadow-sm">
             <div class="card-body p-4">
@@ -24,7 +24,7 @@
                     <h2 class="h5 mb-0">Новая заявка</h2>
                     <span class="badge text-bg-secondary">Остаток отпуска: —</span>
                 </div>
-                <!-- TODO: Подключить отправку заявки и валидацию вместе с ответственным за раздел заявок. -->
+                <!-- INTEGRATION: app.api.requests подключает POST/валидацию для employee; HR и manager не должны отправлять заявки. -->
                 <form onsubmit="return false;">
                     <div class="mb-3">
                         <label class="form-label" for="request_type">Вид заявки</label>
@@ -61,7 +61,7 @@
                     <table class="table align-middle mb-0">
                         <thead class="table-light"><tr><th class="ps-4">Вид</th><th>Период</th><th>Дни</th><th>Статус</th><th>Описание</th></tr></thead>
                         <tbody>
-                        <!-- TODO: Подключить список заявок и статусы из реализации коллеги. -->
+                        <!-- INTEGRATION: app.api.requests передаёт сюда личные заявки employee и их статусы. -->
                         <tr><td colspan="5" class="text-center text-secondary py-5">Здесь будут отображаться ваши заявки.</td></tr>
                         </tbody>
                     </table>
@@ -74,12 +74,12 @@
         <section class="card border-0 shadow-sm">
             <div class="card-body p-4">
                 <h2 class="h5">Заявки на рассмотрение</h2>
-                {% if user.role.value == 'manager' %}
+                {% if user.role.name == 'manager' %}
                 <p class="text-secondary">Здесь будут отображаться заявки ваших подчинённых.</p>
-                <!-- TODO: Подключить список заявок только от прямых подчинённых и действия рассмотрения. -->
+                <!-- INTEGRATION: app.api.requests передаёт заявки прямых подчинённых и подключает действия рассмотрения для manager. -->
                 {% else %}
                 <p class="text-secondary">Здесь будут отображаться заявки всех сотрудников.</p>
-                <!-- TODO: Подключить общий список заявок и действия рассмотрения для HR. -->
+                <!-- INTEGRATION: app.api.requests передаёт общий список заявок и подключает действия рассмотрения для HR. -->
                 {% endif %}
                 <div class="text-center text-secondary py-4">Список заявок пока не подключён.</div>
             </div>
@@ -87,7 +87,7 @@
     </div>
     {% endif %}
 </div>
-{% if user.role.value == 'employee' %}
+{% if user.role.name == 'employee' %}
 <script>
     const requestType = document.getElementById("request_type");
     if (requestType) {

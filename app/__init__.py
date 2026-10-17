@@ -1,7 +1,7 @@
 import os
 
-from flask import Flask, redirect, url_for
 from dotenv import load_dotenv
+from flask import Flask
 
 from app.extensions import db, migrate
 
@@ -9,31 +9,34 @@ load_dotenv()
 
 
 def create_app():
-    app = Flask(__name__)
-
-    app.config["SECRET_KEY"] = os.getenv(
-        "SECRET_KEY", "dev-secret"
+    app = Flask(
+        __name__,
+        template_folder="templates",
+        static_folder="static",
+        static_url_path="/static",
     )
-
-    app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv(
-        "DATABASE_URL"
-    )
-
+    app.config["SECRET_KEY"] = os.getenv("SECRET_KEY", "dev-secret")
+    app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv("DATABASE_URL")
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+
+    if not app.config["SQLALCHEMY_DATABASE_URI"]:
+        raise RuntimeError("DATABASE_URL is not set")
 
     db.init_app(app)
     migrate.init_app(app, db)
 
-    from app import models
-
+    # Load model metadata before Alembic inspects it.
+    from app import models  # noqa: F401
     from app.core.permissions import load_current_user
-    app.before_request(load_current_user)
-
     from app.api.account.routes import account_bp
-    app.register_blueprint(account_bp)
+    from app.api.account.landing import landing_bp
+    from app.api.admin.routes import admin_bp
+    from app.api.employee.routes import employees_bp
 
-    @app.route("/")
-    def index():
-        return redirect(url_for("users.login"))
+    app.before_request(load_current_user)
+    app.register_blueprint(account_bp)
+    app.register_blueprint(landing_bp)
+    app.register_blueprint(admin_bp)
+    app.register_blueprint(employees_bp)
 
     return app

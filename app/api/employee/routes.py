@@ -51,7 +51,7 @@ def get_employees():
             "first_name": employee.first_name,
             "last_name": employee.last_name,
             "email": employee.email,
-            "position": employee.position,
+            "position": employee.position.name if employee.position else None,
             "department": employee.department.name,
         }
         for employee in employees
@@ -72,7 +72,7 @@ def get_employee(employee_id: int):
 
     # Salary is HR-only data; it is deliberately omitted for employees and
     # managers even when the profile itself is within their permitted scope.
-    if g.current_user.role.value != "hr":
+    if g.current_user.role.name != "hr":
         employee.pop("salary", None)
 
     return jsonify(employee), 200
