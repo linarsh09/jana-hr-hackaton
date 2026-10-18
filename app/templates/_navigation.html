@@ -1,0 +1,9 @@
+{% set current_page = active_page|default('') %}
+{% macro nav_item(endpoint,label,key,icon) %}<a href="{{ url_for(endpoint) }}" class="jana-nav-item {{ 'is-active' if current_page == key else '' }}" {% if current_page == key %}aria-current="page"{% endif %}><span class="jana-nav-icon" aria-hidden="true">{{ icon }}</span><span>{{ label }}</span>{% if current_page == key %}<span class="jana-nav-dot" aria-hidden="true"></span>{% endif %}</a>{% endmacro %}
+<nav class="jana-nav" aria-label="Личный кабинет">
+{{ nav_item('users.profile','Мой профиль','profile','◉') }}
+{{ nav_item('users.courses_page','Обучение команды' if g.current_user.role.value in ['hr','admin','manager'] else 'Моё обучение','courses','▤') }}
+{{ nav_item('users.requests_page','Заявки','requests','▧') }}
+{% if g.current_user.role.value == 'manager' %}{{ nav_item('users.team_page','Моя команда','team','♧') }}{% endif %}
+{% if g.current_user.role.value in ['hr','admin'] %}<div class="jana-nav-label mt-4">УПРАВЛЕНИЕ</div>{{ nav_item('admin.employees','Сотрудники','employees','♧') }}{% endif %}
+</nav>

@@ -1,0 +1,25 @@
+{% extends "admin_layout.html" %}
+{% set active_page = 'employees' %}
+{% block title %}Изменить сотрудника{% endblock %}
+{% block page_title %}Изменить сотрудника{% endblock %}
+
+{% block content %}
+<div class="mb-4"><a href="{{ url_for('admin.employees') }}" class="text-decoration-none text-secondary">← К сотрудникам</a><h1 class="h3 mt-3 mb-1">Изменить сотрудника</h1></div>
+<form method="post" action="{{ url_for('admin.edit_employee', employee_id=user.id) }}" class="jana-form-width">
+    {% if csrf_token is defined %}<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">{% endif %}
+    <section class="card mb-4"><div class="card-body p-4"><h2 class="h5 mb-3">Учётная запись</h2><div class="row g-3">
+        <div class="col-12 col-md-6"><label class="form-label" for="username">Логин</label><input class="form-control" id="username" name="username" required value="{{ request.form.get('username', user.username) }}"></div>
+        <div class="col-12 col-md-6"><label class="form-label" for="role">Роль</label><select class="form-select" id="role" name="role"><option value="employee" {% if user.role.name == 'employee' %}selected{% endif %}>Сотрудник</option><option value="manager" {% if user.role.name == 'manager' %}selected{% endif %}>Руководитель</option></select></div>
+        <div class="col-12"><div class="form-check form-switch"><input class="form-check-input" type="checkbox" id="is_active" name="is_active" value="1" {% if user.is_active %}checked{% endif %}><label class="form-check-label" for="is_active">Учётная запись активна</label></div></div>
+    </div></div></section>
+    <section class="card mb-4"><div class="card-body p-4"><h2 class="h5 mb-3">Кадровая карточка</h2><div class="row g-3">
+        <div class="col-12 col-md-6"><label class="form-label" for="first_name">Имя</label><input class="form-control" id="first_name" name="first_name" required value="{{ request.form.get('first_name', employee.first_name) }}"></div>
+        <div class="col-12 col-md-6"><label class="form-label" for="last_name">Фамилия</label><input class="form-control" id="last_name" name="last_name" required value="{{ request.form.get('last_name', employee.last_name) }}"></div>
+        <div class="col-12 col-md-6"><label class="form-label" for="email">Рабочий email</label><input class="form-control" id="email" name="email" type="email" required value="{{ request.form.get('email', employee.email) }}"></div>
+        <div class="col-12 col-md-6"><label class="form-label" for="hire_date">Дата приёма</label><input class="form-control" id="hire_date" type="date" value="{{ employee.hire_date.isoformat() }}" disabled></div>
+        <div class="col-12 col-md-6"><label class="form-label" for="department_id">Подразделение</label><select class="form-select" id="department_id" name="department_id" required>{% for department in departments %}<option value="{{ department.id }}" {% if employee.department_id == department.id %}selected{% endif %}>{{ department.name }}</option>{% endfor %}</select></div>
+        <div class="col-12 col-md-6"><label class="form-label" for="position_id">Должность</label><select class="form-select" id="position_id" name="position_id" required>{% for position in positions %}<option value="{{ position.id }}" {% if employee.position_id == position.id %}selected{% endif %}>{{ position.name }}</option>{% endfor %}</select></div>
+    </div></div></section>
+    <div class="d-flex gap-2"><button class="btn btn-primary" type="submit">Сохранить</button><a class="btn btn-outline-secondary" href="{{ url_for('admin.employees') }}">Отмена</a></div>
+</form>
+{% endblock %}

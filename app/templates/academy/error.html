@@ -1,0 +1,5 @@
+<!doctype html><html lang="ru"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Jana Academy — доступ</title><body style="font:17px/1.7 'Segoe UI',sans-serif;background:#f5f7f2;color:#1c3032;padding:8vw">
+<h1>{{ 'Материал недоступен' if error.status == 404 else 'Не удалось выполнить действие' }}</h1>
+<p>{% if error.code == 'lessons_not_completed' %}Итоговый тест откроется после прохождения всех уроков курса. Вернись к программе и отметь изученные уроки.{% elif error.status == 404 %}Курс или тест не найден либо пока не назначен тебе. Уточни назначение у HR или руководителя.{% elif error.status == 403 %}У этой учётной записи нет прав на это действие.{% else %}Проверь заполненные данные. Обнови страницу и попробуй ещё раз.{% endif %}</p>
+<a href="{{ url_for('academy_pages.catalog') }}">← Вернуться в Academy</a></body></html>

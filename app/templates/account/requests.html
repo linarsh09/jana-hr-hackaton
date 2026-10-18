@@ -1,0 +1,108 @@
+{% extends "account_layout.html" %}
+{% set active_page = 'requests' %}
+{% block title %}Заявки{% endblock %}
+{% block page_title %}Личный кабинет · Заявки{% endblock %}
+
+{% block content %}
+<div class="row g-4">
+    <div class="col-12">
+        <div class="jana-eyebrow mb-2">Рабочие вопросы без лишних шагов</div><h1 class="h3 mb-1">Заявки</h1>
+        {% if user.role.value == 'employee' %}
+        <p class="text-secondary">Подайте заявку и следите за её статусом.</p>
+        {% elif user.role.value == 'manager' %}
+        <p class="text-secondary">Рассматривайте заявки сотрудников, закреплённых за вами.</p>
+        {% else %}
+        <p class="text-secondary">Рассматривайте заявки сотрудников компании.</p>
+        {% endif %}
+    </div>
+
+    {% if user.role.value == 'employee' %}
+    <div class="col-12 col-xl-5">
+        <section class="card border-0 shadow-sm">
+            <div class="card-body p-4">
+                <div class="d-flex justify-content-between align-items-start gap-3 mb-3">
+                    <h2 class="h5 mb-0">Новая заявка</h2>
+                    <span class="badge text-bg-secondary">Остаток отпуска: —</span>
+                </div>
+                <!-- TODO: Подключить отправку заявки и валидацию вместе с ответственным за раздел заявок. -->
+                <form onsubmit="return false;">
+                    <div class="mb-3">
+                        <label class="form-label" for="request_type">Вид заявки</label>
+                        <select class="form-select" id="request_type" name="request_type" required>
+                            <option value="vacation">Отпуск</option>
+                            <option value="sick_leave">Больничный</option>
+                            <option value="certificate">Справка</option>
+                            <option value="other">Другое</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label" for="start_date">Дата начала</label>
+                        <input class="form-control" id="start_date" name="start_date" type="date" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label" for="end_date">Дата окончания</label>
+                        <input class="form-control" id="end_date" name="end_date" type="date" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label" for="comment">Описание / комментарий</label>
+                        <textarea class="form-control" id="comment" name="comment" rows="3" maxlength="2000"></textarea>
+                    </div>
+                    <button class="btn btn-primary" type="button" disabled>Отправка скоро появится</button>
+                </form>
+            </div>
+        </section>
+    </div>
+
+    <div class="col-12 col-xl-7">
+        <section class="card border-0 shadow-sm">
+            <div class="card-body p-0">
+                <div class="p-4 pb-3"><h2 class="h5 mb-0">Мои заявки</h2></div>
+                <div class="table-responsive">
+                    <table class="table align-middle mb-0">
+                        <thead class="table-light"><tr><th class="ps-4">Вид</th><th>Период</th><th>Дни</th><th>Статус</th><th>Описание</th></tr></thead>
+                        <tbody>
+                        <!-- TODO: Подключить список заявок и статусы из реализации коллеги. -->
+                        <tr><td colspan="5" class="text-center text-secondary py-5">Пока нет заявок. Здесь появятся обращения и их статусы.</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+    </div>
+    {% else %}
+    <div class="col-12">
+        <section class="card border-0 shadow-sm">
+            <div class="card-body p-4">
+                <h2 class="h5">Заявки на рассмотрение</h2>
+                {% if user.role.value == 'manager' %}
+                <p class="text-secondary">Здесь будут отображаться заявки ваших подчинённых.</p>
+                <!-- TODO: Подключить список заявок только от прямых подчинённых и действия рассмотрения. -->
+                {% else %}
+                <p class="text-secondary">Здесь будут отображаться заявки всех сотрудников.</p>
+                <!-- TODO: Подключить общий список заявок и действия рассмотрения для HR. -->
+                {% endif %}
+                <div class="text-center text-secondary py-4">Раздел готовится к запуску. Заявки появятся здесь после подключения.</div>
+            </div>
+        </section>
+    </div>
+    {% endif %}
+</div>
+{% if user.role.value == 'employee' %}
+<script>
+    const requestType = document.getElementById("request_type");
+    if (requestType) {
+        const dateInputs = [document.getElementById("start_date"), document.getElementById("end_date")];
+        function updateRequestFields() {
+            const needsDates = ["vacation", "sick_leave"].includes(requestType.value);
+            for (const input of dateInputs) {
+                input.required = needsDates;
+                input.closest(".mb-3").hidden = !needsDates;
+                if (!needsDates) input.value = "";
+            }
+        }
+        requestType.addEventListener("change", updateRequestFields);
+        updateRequestFields();
+    }
+</script>
+{% endif %}
+{% endblock %}

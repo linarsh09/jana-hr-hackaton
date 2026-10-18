@@ -1,0 +1,75 @@
+{% extends "admin_layout.html" %}
+{% set active_page = 'employees' %}
+{% block title %}Создать карточку сотрудника{% endblock %}
+{% block page_title %}Создать карточку сотрудника{% endblock %}
+
+{% block content %}
+<div class="mb-4">
+    <a href="{{ url_for('admin.employees') }}" class="text-decoration-none text-secondary">← К сотрудникам</a>
+    <h1 class="h3 mt-3 mb-1">Новая карточка сотрудника</h1>
+    <p class="text-secondary">Сначала создайте кадровую карточку, затем свяжите её с учётной записью.</p>
+</div>
+
+<div class="card border-0 shadow-sm">
+    <div class="card-body p-4">
+        {% if not departments %}
+        <div class="alert alert-warning mb-0">Сначала добавьте подразделение в базу данных: без него нельзя создать карточку.</div>
+        {% else %}
+        <form method="post" action="{{ url_for('admin.create_employee_card') }}" class="row g-3">
+            <div class="col-12 col-md-6">
+                <label class="form-label" for="first_name">Имя</label>
+                <input class="form-control" id="first_name" name="first_name" required maxlength="100" value="{{ request.form.get('first_name', '') }}">
+            </div>
+            <div class="col-12 col-md-6">
+                <label class="form-label" for="last_name">Фамилия</label>
+                <input class="form-control" id="last_name" name="last_name" required maxlength="100" value="{{ request.form.get('last_name', '') }}">
+            </div>
+            <div class="col-12 col-md-6">
+                <label class="form-label" for="email">Рабочий email</label>
+                <input class="form-control" id="email" name="email" type="email" required maxlength="255" value="{{ request.form.get('email', '') }}">
+            </div>
+            <div class="col-12 col-md-6">
+                <label class="form-label" for="position">Должность</label>
+                <select class="form-select" id="position" name="position" required>
+                    <option value="">Выберите должность</option>
+                    {% for value, label in position_options %}
+                    <option value="{{ value }}" {% if request.form.get('position') == value %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                    <option value="other" {% if request.form.get('position') == 'other' %}selected{% endif %}>Другое</option>
+                </select>
+                <input class="form-control mt-2" id="other_position" name="other_position" maxlength="150" placeholder="Укажите должность" value="{{ request.form.get('other_position', '') }}" {% if request.form.get('position') != 'other' %}hidden{% endif %}>
+            </div>
+            <div class="col-12 col-md-6">
+                <label class="form-label" for="company">Компания</label>
+                <input class="form-control" id="company" name="company" maxlength="150" value="{{ request.form.get('company', '') }}">
+            </div>
+            <div class="col-12 col-md-6">
+                <label class="form-label" for="department_id">Подразделение</label>
+                <select class="form-select" id="department_id" name="department_id" required>
+                    <option value="">Выберите подразделение</option>
+                    {% for department in departments %}
+                    <option value="{{ department.id }}" {% if request.form.get('department_id')|int == department.id %}selected{% endif %}>{{ department.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-12 col-md-6">
+                <label class="form-label" for="hire_date">Дата приёма</label>
+                <input class="form-control" id="hire_date" name="hire_date" type="date" required value="{{ request.form.get('hire_date', '') }}">
+            </div>
+            <div class="col-12"><button class="btn btn-primary" type="submit">Создать карточку</button></div>
+        </form>
+        <script>
+            const positionSelect = document.getElementById("position");
+            const otherPosition = document.getElementById("other_position");
+            function toggleOtherPosition() {
+                const isOther = positionSelect.value === "other";
+                otherPosition.hidden = !isOther;
+                otherPosition.required = isOther;
+            }
+            positionSelect.addEventListener("change", toggleOtherPosition);
+            toggleOtherPosition();
+        </script>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

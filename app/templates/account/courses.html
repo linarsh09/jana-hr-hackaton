@@ -1,0 +1,34 @@
+{% extends "account_layout.html" %}
+{% set active_page = 'courses' %}
+{% block title %}Курсы{% endblock %}
+{% block page_title %}Личный кабинет · Курсы{% endblock %}
+
+{% block content %}
+<div class="row g-4">
+    <div class="col-12">
+        <h1 class="h3 mb-1">Курсы</h1>
+        {% if user.role.value in ['hr', 'manager', 'admin'] %}
+        <p class="text-secondary">Назначение обучения сотрудникам</p>
+        {% else %}
+        <p class="text-secondary">Назначенное вам обучение</p>
+        {% endif %}
+    </div>
+
+    <div class="col-12">
+        <section class="card border-0 shadow-sm">
+            <div class="card-body p-4">
+                {% if user.role.value in ['hr', 'manager', 'admin'] %}
+                    <h2 class="h5">Назначить курс</h2>
+                    <p class="text-secondary mb-3">Здесь появится форма назначения курсов сотрудникам.</p>
+                    <button class="btn btn-outline-primary" type="button" disabled>Назначение курсов скоро появится</button>
+                    <!-- TODO: Подключить форму назначения из app.api.academy. HR назначает курсы всем, руководитель — своим подчинённым. -->
+                {% else %}
+                    <h2 class="h5">Моё обучение</h2>
+                    <p class="text-secondary mb-0">Здесь появятся назначенные вам курсы и переход к их прохождению.</p>
+                    <!-- TODO: Подключить список курсов и запуск обучения из app.api.academy для роли employee. -->
+                {% endif %}
+            </div>
+        </section>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,8 @@
+{% extends '_layout.html' %}
+{% block content %}
+<div class="jana-eyebrow">Твоё рабочее пространство</div><h1>С возвращением!</h1><p class="text-secondary mb-4">Войди, чтобы продолжить свой день с JanaMen.</p>
+{% if errors %}<div class="alert alert-danger" role="alert">{% for field,message in errors.items() %}<div>{{ message }}</div>{% endfor %}</div>{% endif %}
+{% if success %}<div class="alert alert-success" role="status">{{ success }}</div>{% endif %}
+<form method="post" action="{{ url_for('users.login') }}"><div class="mb-3"><label for="username" class="form-label">Логин</label><input id="username" name="username" class="form-control" value="{{ username|default('') }}" autocomplete="username" placeholder="Твой рабочий логин" required></div><div class="mb-4"><label for="password" class="form-label">Пароль</label><input id="password" name="password" type="password" class="form-control" autocomplete="current-password" placeholder="Введи пароль" required></div><button class="btn btn-primary w-100" type="submit">Войти в кабинет →</button></form>
+<p class="jana-auth-help">Нет учётной записи или не получается войти?<br>Обратись к своему HR-специалисту.</p>
+{% endblock %}

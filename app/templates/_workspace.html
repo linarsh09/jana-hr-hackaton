@@ -1,0 +1,18 @@
+<!doctype html>
+<html lang="ru"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>{% block title %}Личный кабинет{% endblock %} — JanaMen</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
+<link href="{{ url_for('static',filename='css/janamen.css') }}" rel="stylesheet">
+{% block extra_css %}{% endblock %}</head><body>
+<a class="jana-skip" href="#main-content">Перейти к содержимому</a>
+<div class="jana-shell"><aside class="jana-sidebar">
+<a class="jana-brand" href="{{ url_for('users.profile') }}">Jana<span>Men</span></a><div class="jana-tagline">PEOPLE & GROWTH</div>
+<div class="jana-nav-label">МОЙ КАБИНЕТ</div>{% include '_navigation.html' %}
+<div class="jana-side-note"><span class="jana-note-symbol" aria-hidden="true">↗</span><strong>Расти вместе с Jana</strong><p>Новые знания и возможности — в твоей Academy.</p><a href="{{ url_for('users.courses_page') }}">Перейти к обучению →</a></div>
+<div class="jana-account"><span class="jana-avatar">{{ g.current_user.username[0]|upper }}</span><div><strong>{{ g.current_user.username }}</strong><small>{{ {'employee':'Сотрудник','manager':'Руководитель','hr':'HR-специалист','admin':'Администратор'}[g.current_user.role.value] }}</small></div><form method="post" action="{{ url_for('users.logout') }}"><button class="jana-logout" type="submit" aria-label="Выйти из аккаунта" title="Выйти">↪</button></form></div>
+</aside><main class="jana-main" id="main-content">
+<header class="jana-topbar"><div><div class="jana-breadcrumb">JanaMen <span>/</span> Личный кабинет</div><strong>{% block page_title %}Твоё пространство для работы{% endblock %}</strong></div><a class="jana-top-profile" href="{{ url_for('users.profile') }}"><span class="jana-top-name">{{ g.current_user.employee.full_name if g.current_user.employee else g.current_user.username }}</span><span class="jana-avatar">{{ g.current_user.username[0]|upper }}</span></a></header>
+<div class="jana-content">{% for category,message in get_flashed_messages(with_categories=true) %}<div class="alert alert-{{ category }}" role="status">{{ message }}</div>{% endfor %}
+{% block content %}{% endblock %}<footer class="jana-footer"><span>JanaMen · Люди. Развитие. Возможности.</span><span>Твоё рабочее пространство</span></footer></div></main></div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous"></script>{% block extra_js %}{% endblock %}</body></html>
