@@ -4,6 +4,7 @@
 {{ nav_item('users.profile','Мой профиль','profile','◉') }}
 {{ nav_item('users.courses_page','Обучение команды' if g.current_user.role.name in ['hr','admin','manager'] else 'Моё обучение','courses','▤') }}
 {{ nav_item('users.requests_page','Заявки','requests','▧') }}
+{{ nav_item('assistant.chat','AI Jana','assistant','✦') }}
 {% if g.current_user.role.name == 'manager' %}{{ nav_item('users.team_page','Моя команда','team','♧') }}{% endif %}
 {% if g.current_user.role.name in ['hr','admin'] %}<div class="jana-nav-label mt-4">УПРАВЛЕНИЕ</div>{{ nav_item('admin.employees','Сотрудники','employees','♧') }}{% endif %}
 </nav>

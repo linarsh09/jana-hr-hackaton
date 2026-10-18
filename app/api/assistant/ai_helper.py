@@ -9,13 +9,13 @@ from app.models import KnowledgeArticle, AIChatLog, AIFallbackLog
 load_dotenv()
 
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
-MODEL_NAME = os.getenv("MODEL_NAME", "gemini-2.5-flash")
+MODEL_NAME = os.getenv("MODEL_NAME", "gemini-3.1-flash-lite")
 GEMINI_TEMPERATURE = float(os.getenv("GEMINI_TEMPERATURE", 0.3))
 MAX_OUTPUT_TOKENS = int(os.getenv("MAX_OUTPUT_TOKENS", 500))
 
 client = genai.Client(api_key=GEMINI_API_KEY)
 
-FALLBACK_MESSAGE = os.getenv("FALLBACK_MESSAGE")
+FALLBACK_MESSAGE = os.getenv("FALLBACK_MESSAGE") or "К сожалению, в доступной мне информации нет ответа по вашему вопросу. Пожалуйста, обратитесь напрямую в HR-департамент."
 
 def load_kb_from_db():
     """Загружает актуальные статьи базы знаний из базы данных"""
