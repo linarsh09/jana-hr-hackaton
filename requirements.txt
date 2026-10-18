@@ -26,3 +26,5 @@ SQLAlchemy==2.0.54
 tomli==2.4.1
 typing_extensions==4.16.0
 Werkzeug==3.1.8
+google-cloud-storage
+google-genai

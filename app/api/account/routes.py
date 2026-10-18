@@ -17,6 +17,8 @@ from app.core.permissions import login_required, role_required, can_manage_emplo
 from .service import AccountService
 from .validators import validate_login_form, validate_register_form
 from datetime import date, datetime, timezone
+import secrets
+from hmac import compare_digest
 
 from app.api.account.service import AccountService
 
@@ -87,18 +89,23 @@ def profile():
 def requests_page():
     user = g.current_user
     employee = user.employee
-    role = user.role.name.lower()
+    role = user.role.name.lower() if user.role else ""
+    csrf = session.setdefault("requests_csrf", secrets.token_hex(32))
 
     if request.method == "POST":
+        if not compare_digest(csrf, request.form.get("csrf_token", "")):
+            abort(400)
         if role != "employee" or employee is None:
             abort(403)
 
         try:
+            if request.form.get("request_type", "vacation") != "vacation":
+                raise ValueError("Пока доступны только заявки на отпуск.")
             VacationService.create_request(
                 employee_id=employee.id,
                 start_date=date.fromisoformat(request.form["start_date"]),
                 end_date=date.fromisoformat(request.form["end_date"]),
-                comment=request.form.get("comment", "").strip() or None
+                comment=request.form.get("comment", "").strip()[:2000] or None
             )
             flash("Заявка успешно отправлена!", "success")
 
@@ -139,7 +146,8 @@ def requests_page():
         "account/requests.html",
         user=user,
         employee=employee,
-        requests=requests_list,
+        requests=sorted(requests_list, key=lambda item: item.id, reverse=True),
+        csrf_token=csrf,
         available_days=available_days
     )
 
@@ -153,6 +161,9 @@ def review_vacation_request(request_id, action):
     if action not in ("approve", "reject"):
         abort(404)
 
+    token = session.get("requests_csrf")
+    if not token or not compare_digest(token, request.form.get("csrf_token", "")):
+        abort(400)
     user = g.current_user
     reviewer = user.employee
     vacation = db.get_or_404(VacationRequest, request_id)
@@ -179,10 +190,7 @@ def review_vacation_request(request_id, action):
 @account_bp.route("/courses")
 @login_required
 def courses_page():
-    return render_template(
-        "account/courses.html",
-        user=g.current_user,
-    )
+    return redirect(url_for("academy_pages.catalog"))
 
 
 @account_bp.route("/team")

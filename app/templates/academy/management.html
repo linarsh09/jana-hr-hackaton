@@ -1,5 +1,5 @@
-<div class="eyebrow">Обучение команды</div><h1>{{ 'Развитие моей команды' if g.current_user.role.value == 'manager' else 'Обучение сотрудников' }}</h1>
-<p class="muted">Назначай курсы и следи за результатами. {{ 'Здесь видны только твои прямые подчинённые.' if g.current_user.role.value == 'manager' else 'Здесь доступны сотрудники с активной учётной записью работника.' }}</p>
+<div class="eyebrow">Обучение команды</div><h1>{{ 'Развитие моей команды' if g.current_user.role.name == 'manager' else 'Обучение сотрудников' }}</h1>
+<p class="muted">Назначай курсы и следи за результатами. {{ 'Здесь видны только твои прямые подчинённые.' if g.current_user.role.name == 'manager' else 'Здесь доступны сотрудники с активной учётной записью работника.' }}</p>
 <section class="card reading" style="margin:26px 0"><h2>Назначить курс</h2>
 {% if employees and courses %}
 <form method="post" action="{{ url_for('academy_pages.assign') }}" style="display:flex;flex-wrap:wrap;gap:18px;align-items:end">

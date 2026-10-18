@@ -26,8 +26,13 @@ def check_csrf(token):
         raise AcademyError("invalid_csrf_token", 400)
 
 
+def role_name():
+    role = getattr(g.current_user, "role", None)
+    return role.name if role is not None else None
+
+
 def manages_courses():
-    return g.current_user.role in (Role.HR, Role.ADMIN, Role.MANAGER)
+    return role_name() in ("hr", "manager")
 
 
 def visible_courses():
@@ -52,14 +57,16 @@ def accessible_course(course_id):
 
 
 def eligible_employees():
-    query = db.select(Employee).join(User, Employee.user_id == User.id).where(
-        User.role == Role.EMPLOYEE, User.is_active.is_(True))
-    if g.current_user.role == Role.MANAGER:
+    query = (db.select(Employee)
+             .join(User, User.employee_id == Employee.id)
+             .join(Role, User.role_id == Role.id)
+             .where(Role.name == "employee", User.is_active.is_(True)))
+    if role_name() == "manager":
         own = g.current_user.employee
         if own is None:
             return []
         query = query.where(Employee.manager_id == own.id)
-    elif g.current_user.role not in (Role.HR, Role.ADMIN):
+    elif role_name() != "hr":
         return []
     return db.session.scalars(query.order_by(Employee.last_name, Employee.id)).all()
 
@@ -130,5 +137,5 @@ def assignment_report():
     assignments = db.session.scalars(db.select(CourseAssignment).where(
         CourseAssignment.employee_id.in_(by_id)).order_by(CourseAssignment.assigned_at.desc())).all()
     return [dict(employee_id=row.employee_id, employee_name=by_id[row.employee_id].full_name,
-                 course_title=row.course.title, **progress_data(row.course, by_id[row.employee_id].user_id))
+                 course_title=row.course.title, **progress_data(row.course, by_id[row.employee_id].user.id))
             for row in assignments]

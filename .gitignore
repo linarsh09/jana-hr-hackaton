@@ -21,3 +21,6 @@ __pycache__/
 # Логи и базы данных SQLite (если используются локально)
 *.log
 *.sqlite3
+
+# Local working backups
+work/

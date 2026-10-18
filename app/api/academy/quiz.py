@@ -5,7 +5,7 @@ from sqlalchemy.exc import IntegrityError
 
 from app.extensions import db
 from app.api.account.course_access import can_take_courses
-from models import QuizQuestion, QuizAttempt
+from app.models import QuizQuestion, QuizAttempt
 from . import service
 
 PASS_PERCENT = 80
